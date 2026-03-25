@@ -39,3 +39,12 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+.env
+.agents/
+.agent/
+_agents/
+_agent/
+*.md
+supabase_init.sql
+
