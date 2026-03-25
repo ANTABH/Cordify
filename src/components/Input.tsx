@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, StyleSheet, TextInputProps } from 'react-native';
+import { View, TextInput, Text, StyleSheet, TextInputProps, Animated } from 'react-native';
 import { theme } from '../theme';
+import { LucideIcon } from 'lucide-react-native';
 
 interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
+  icon?: LucideIcon;
 }
 
-export const Input = ({ label, error, style, ...props }: InputProps) => {
+export const Input = ({ label, error, icon: Icon, style, ...props }: InputProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
@@ -18,11 +20,19 @@ export const Input = ({ label, error, style, ...props }: InputProps) => {
         isFocused && styles.inputFocused,
         error && styles.inputError
       ]}>
+        {Icon && (
+          <Icon 
+            size={20} 
+            color={isFocused ? theme.colors.badmintonPrimary : theme.colors.textSecondary} 
+            style={styles.icon} 
+          />
+        )}
         <TextInput
           style={styles.input}
           placeholderTextColor={theme.colors.textSecondary}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          selectionColor={theme.colors.badmintonPrimary}
           {...props}
         />
       </View>
@@ -36,39 +46,46 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   label: {
-    fontFamily: theme.typography.fonts.medium,
+    fontFamily: theme.typography.fonts.semiBold,
     fontSize: theme.typography.sizes.subtext,
     color: theme.colors.textPrimary,
     marginBottom: theme.spacing.xs,
     marginLeft: 4,
+    opacity: 0.8,
   },
   inputContainer: {
-    backgroundColor: theme.colors.background,
+    backgroundColor: '#FFFFFF',
     borderRadius: theme.borderRadius.input,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    height: 56,
+    borderWidth: 1.5,
+    borderColor: '#E8EDF2',
+    height: 58,
     paddingHorizontal: theme.spacing.md,
-    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    ...theme.shadows.soft,
   },
   inputFocused: {
     borderColor: theme.colors.badmintonPrimary,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: '#FFFFFF',
+    shadowOpacity: 0.1,
   },
   inputError: {
     borderColor: theme.colors.alert,
   },
+  icon: {
+    marginRight: 12,
+  },
   input: {
     flex: 1,
-    fontFamily: theme.typography.fonts.regular,
+    fontFamily: theme.typography.fonts.medium,
     fontSize: theme.typography.sizes.body,
     color: theme.colors.textPrimary,
   },
   errorText: {
-    fontFamily: theme.typography.fonts.regular,
+    fontFamily: theme.typography.fonts.medium,
     fontSize: theme.typography.sizes.subtext,
     color: theme.colors.alert,
     marginTop: theme.spacing.xs,
-    marginLeft: 4,
+    marginLeft: 8,
   }
 });
