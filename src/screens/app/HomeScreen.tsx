@@ -1,15 +1,93 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { theme } from '../../theme';
 import { supabase } from '../../lib/supabase';
-import { MapPin, Search, SlidersHorizontal, Settings, LogOut } from 'lucide-react-native';
-import { BlurView } from 'expo-blur';
+import { Search, SlidersHorizontal, Settings, LogOut, MapPin } from 'lucide-react-native';
+import * as Location from 'expo-location';
+import { Map, StringerMapPin } from '../../components/Map';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 export const HomeScreen = () => {
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [stringers, setStringers] = useState<StringerMapPin[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+
+  useEffect(() => {
+    (async () => {
+      // 1. Demande de permission de geolocalisation
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setLocationError('La permission de localisation a été refusée.');
+      } else {
+        let currentLocation = await Location.getCurrentPositionAsync({});
+        setLocation(currentLocation);
+      }
+
+      // 2. Fetch des cordeurs
+      await fetchStringers();
+    })();
+  }, []);
+
+  const fetchStringers = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('stringer_profiles')
+        .select(`
+          id,
+          type,
+          lat,
+          lng,
+          sports,
+          profiles:id (
+            first_name,
+            last_name,
+            avatar_url
+          )
+        `);
+
+      if (error) throw error;
+
+      if (data) {
+        // Mapping vers le format du composant Map
+        const formattedStringers: StringerMapPin[] = data.map((item: any) => ({
+          id: item.id,
+          name: `${item.profiles.first_name} ${item.profiles.last_name}`,
+          type: item.type,
+          lat: item.lat,
+          lng: item.lng,
+          sports: item.sports,
+          startingPrice: 18 // TODO: Fetch from stock table later
+        }));
+        setStringers(formattedStringers);
+      }
+    } catch (err) {
+      console.error('Erreur fetch stringers:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     supabase.auth.signOut();
+  };
+
+  // Calcul basique de distance en km (Formule de Haversine)
+  const getDistanceFromLatLonInKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Rayon de la terre en km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2); 
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    return (R * c).toFixed(1);
   };
 
   return (
@@ -18,11 +96,11 @@ export const HomeScreen = () => {
         <View style={styles.headerTop}>
           <Text style={styles.greeting}>Bonjour 👋</Text>
           <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.iconButton}>
+            <TouchableOpacity 
+              style={styles.iconButton} 
+              onPress={() => navigation.navigate('Settings')}
+            >
               <Settings size={24} color={theme.colors.textPrimary} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={handleLogout}>
-              <LogOut size={24} color={theme.colors.alert} />
             </TouchableOpacity>
           </View>
         </View>
@@ -52,71 +130,72 @@ export const HomeScreen = () => {
         </View>
       </View>
 
-      {/* Content Area - Bento Grid Approach for List */}
+      {/* Content Area */}
       {viewMode === 'list' ? (
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <Text style={styles.sectionTitle}>Cordeurs proches de vous</Text>
           
-          {/* Bento Card 1 */}
-          <View style={styles.bentoCard}>
-            <View style={styles.cardHeader}>
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarText}>JD</Text>
-              </View>
-              <View style={styles.cardInfo}>
-                <Text style={styles.stringerName}>Jean Dupont</Text>
-                <Text style={styles.stringerMeta}>Indépendant • 1.2 km</Text>
-              </View>
-              <View style={styles.ratingBadge}>
-                <Text style={styles.ratingText}>⭐ 4.8</Text>
-              </View>
-            </View>
-            
-            <View style={styles.sportsRow}>
-              <View style={[styles.sportBadge, { backgroundColor: theme.colors.badmintonPrimary + '20' }]}>
-                <Text style={[styles.sportText, { color: theme.colors.badmintonPrimary }]}>🏸 Badminton</Text>
-              </View>
-              <View style={[styles.sportBadge, { backgroundColor: theme.colors.tennisPrimary + '20' }]}>
-                <Text style={[styles.sportText, { color: theme.colors.tennisPrimary }]}>🎾 Tennis</Text>
-              </View>
-            </View>
+          {loading ? (
+            <ActivityIndicator size="large" color={theme.colors.badmintonPrimary} style={{ marginTop: 40 }} />
+          ) : stringers.length === 0 ? (
+            <Text style={styles.emptyText}>Aucun cordeur trouvé.</Text>
+          ) : (
+            stringers.map((stringer) => {
+              const distance = location 
+                ? getDistanceFromLatLonInKm(location.coords.latitude, location.coords.longitude, stringer.lat, stringer.lng)
+                : '1.2';
+              
+              const initials = stringer.name.split(' ').map(n => n.charAt(0)).join('').substring(0,2).toUpperCase();
+              const isBadminton = stringer.sports.includes('badminton');
+              const isTennis = stringer.sports.includes('tennis');
 
-            <View style={styles.priceRow}>
-              <Text style={styles.priceText}>Cordages à partir de <Text style={styles.priceHighlight}>18 €</Text></Text>
-            </View>
-          </View>
+              return (
+                <View key={stringer.id} style={styles.bentoCard}>
+                  <View style={styles.cardHeader}>
+                    <View style={[styles.avatarPlaceholder, { backgroundColor: isBadminton ? theme.colors.badmintonPrimary : theme.colors.tennisPrimary }]}>
+                      <Text style={styles.avatarText}>{initials}</Text>
+                    </View>
+                    <View style={styles.cardInfo}>
+                      <Text style={styles.stringerName}>{stringer.name}</Text>
+                      <Text style={styles.stringerMeta}>{stringer.type === 'boutique' ? 'Boutique' : 'Indépendant'} • {distance} km</Text>
+                    </View>
+                    <View style={styles.ratingBadge}>
+                      <Text style={styles.ratingText}>⭐ 4.8</Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.sportsRow}>
+                    {isBadminton && (
+                      <View style={[styles.sportBadge, { backgroundColor: theme.colors.badmintonPrimary + '20' }]}>
+                        <Text style={[styles.sportText, { color: theme.colors.badmintonPrimary }]}>🏸 Badminton</Text>
+                      </View>
+                    )}
+                    {isTennis && (
+                      <View style={[styles.sportBadge, { backgroundColor: theme.colors.tennisPrimary + '20' }]}>
+                        <Text style={[styles.sportText, { color: theme.colors.tennisPrimary }]}>🎾 Tennis</Text>
+                      </View>
+                    )}
+                  </View>
 
-          {/* Bento Card 2 */}
-          <View style={styles.bentoCard}>
-            <View style={styles.cardHeader}>
-              <View style={[styles.avatarPlaceholder, { backgroundColor: theme.colors.tennisPrimary }]}>
-                <Text style={styles.avatarText}>PC</Text>
-              </View>
-              <View style={styles.cardInfo}>
-                <Text style={styles.stringerName}>Pro Cordage</Text>
-                <Text style={styles.stringerMeta}>Boutique • 3.8 km</Text>
-              </View>
-              <View style={styles.ratingBadge}>
-                <Text style={styles.ratingText}>⭐ 4.5</Text>
-              </View>
-            </View>
-            
-            <View style={styles.sportsRow}>
-              <View style={[styles.sportBadge, { backgroundColor: theme.colors.badmintonPrimary + '20' }]}>
-                <Text style={[styles.sportText, { color: theme.colors.badmintonPrimary }]}>🏸 Badminton</Text>
-              </View>
-            </View>
-
-            <View style={styles.priceRow}>
-              <Text style={styles.priceText}>Cordages à partir de <Text style={styles.priceHighlight}>22 €</Text></Text>
-            </View>
-          </View>
-
+                  <View style={styles.priceRow}>
+                    <Text style={styles.priceText}>Cordages à partir de <Text style={styles.priceHighlight}>{stringer.startingPrice} €</Text></Text>
+                  </View>
+                </View>
+              );
+            })
+          )}
         </ScrollView>
       ) : (
-        <View style={styles.mapPlaceholder}>
-          <MapPin size={48} color={theme.colors.textSecondary} opacity={0.5} />
-          <Text style={styles.mapText}>La carte interactive apparaîtra ici.</Text>
+        <View style={styles.mapWrapper}>
+          <Map 
+            stringers={stringers} 
+            userLocation={location ? { 
+              latitude: location.coords.latitude, 
+              longitude: location.coords.longitude, 
+              latitudeDelta: 0.1, 
+              longitudeDelta: 0.1 
+            } : undefined} 
+          />
         </View>
       )}
     </SafeAreaView>
@@ -130,7 +209,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: theme.spacing.md,
-    paddingTop: Platform.OS === 'android' ? theme.spacing.xl : theme.spacing.sm,
+    paddingTop: Platform.OS === 'android' ? theme.spacing.xl + 10 : theme.spacing.sm,
     paddingBottom: theme.spacing.sm,
     backgroundColor: theme.colors.background,
     zIndex: 10,
@@ -222,6 +301,12 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     marginBottom: theme.spacing.md,
   },
+  emptyText: {
+    fontFamily: theme.typography.fonts.medium,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 40,
+  },
   bentoCard: {
     backgroundColor: theme.colors.surface,
     borderRadius: 32,
@@ -301,18 +386,9 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fonts.bold,
     color: theme.colors.textPrimary,
   },
-  mapPlaceholder: {
+  mapWrapper: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#EAECEF',
-    margin: theme.spacing.md,
-    borderRadius: 32,
-    ...theme.shadows.soft,
-  },
-  mapText: {
-    marginTop: theme.spacing.sm,
-    fontFamily: theme.typography.fonts.medium,
-    color: theme.colors.textSecondary,
+    padding: theme.spacing.md,
+    paddingBottom: 20,
   }
 });

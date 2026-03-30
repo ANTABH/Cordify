@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { OnboardingScreen } from '../screens/auth/OnboardingScreen';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { HomeScreen } from '../screens/app/HomeScreen';
+import { SettingsScreen } from '../screens/app/SettingsScreen';
 import { theme } from '../theme';
 import { useAuth } from '../context/AuthContext';
 import { ActivityIndicator, View } from 'react-native';
@@ -35,12 +36,18 @@ export const RootNavigator = () => {
       }}
     >
       {session ? (
-        // App Stack
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ headerShown: false }}
-        />
+        <>
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{ title: 'Paramètres' }}
+          />
+        </>
       ) : (
         // Auth Stack
         <>
