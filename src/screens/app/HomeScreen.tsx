@@ -44,7 +44,7 @@ export const HomeScreen = () => {
           lat,
           lng,
           sports,
-          profiles:id (
+          profiles:profiles!stringer_profiles_id_fkey (
             first_name,
             last_name,
             avatar_url
@@ -82,11 +82,11 @@ export const HomeScreen = () => {
     const R = 6371; // Rayon de la terre en km
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2); 
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return (R * c).toFixed(1);
   };
 
@@ -96,8 +96,8 @@ export const HomeScreen = () => {
         <View style={styles.headerTop}>
           <Text style={styles.greeting}>Bonjour 👋</Text>
           <View style={styles.headerActions}>
-            <TouchableOpacity 
-              style={styles.iconButton} 
+            <TouchableOpacity
+              style={styles.iconButton}
               onPress={() => navigation.navigate('Settings')}
             >
               <Settings size={24} color={theme.colors.textPrimary} />
@@ -115,13 +115,13 @@ export const HomeScreen = () => {
 
         {/* Toggle Liste / Carte */}
         <View style={styles.toggleContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.toggleButton, viewMode === 'list' && styles.toggleActive]}
             onPress={() => setViewMode('list')}
           >
             <Text style={[styles.toggleText, viewMode === 'list' && styles.toggleTextActive]}>Liste</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.toggleButton, viewMode === 'map' && styles.toggleActive]}
             onPress={() => setViewMode('map')}
           >
@@ -134,18 +134,18 @@ export const HomeScreen = () => {
       {viewMode === 'list' ? (
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <Text style={styles.sectionTitle}>Cordeurs proches de vous</Text>
-          
+
           {loading ? (
             <ActivityIndicator size="large" color={theme.colors.badmintonPrimary} style={{ marginTop: 40 }} />
           ) : stringers.length === 0 ? (
             <Text style={styles.emptyText}>Aucun cordeur trouvé.</Text>
           ) : (
             stringers.map((stringer) => {
-              const distance = location 
+              const distance = location
                 ? getDistanceFromLatLonInKm(location.coords.latitude, location.coords.longitude, stringer.lat, stringer.lng)
                 : '1.2';
-              
-              const initials = stringer.name.split(' ').map(n => n.charAt(0)).join('').substring(0,2).toUpperCase();
+
+              const initials = stringer.name.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
               const isBadminton = stringer.sports.includes('badminton');
               const isTennis = stringer.sports.includes('tennis');
 
@@ -163,7 +163,7 @@ export const HomeScreen = () => {
                       <Text style={styles.ratingText}>⭐ 4.8</Text>
                     </View>
                   </View>
-                  
+
                   <View style={styles.sportsRow}>
                     {isBadminton && (
                       <View style={[styles.sportBadge, { backgroundColor: theme.colors.badmintonPrimary + '20' }]}>
@@ -187,14 +187,14 @@ export const HomeScreen = () => {
         </ScrollView>
       ) : (
         <View style={styles.mapWrapper}>
-          <Map 
-            stringers={stringers} 
-            userLocation={location ? { 
-              latitude: location.coords.latitude, 
-              longitude: location.coords.longitude, 
-              latitudeDelta: 0.1, 
-              longitudeDelta: 0.1 
-            } : undefined} 
+          <Map
+            stringers={stringers}
+            userLocation={location ? {
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+              latitudeDelta: 0.1,
+              longitudeDelta: 0.1
+            } : undefined}
           />
         </View>
       )}
