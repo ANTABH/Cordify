@@ -4,6 +4,7 @@ import { OnboardingScreen } from '../screens/auth/OnboardingScreen';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { HomeScreen } from '../screens/app/HomeScreen';
 import { SettingsScreen } from '../screens/app/SettingsScreen';
+import { StringerProfileScreen } from '../screens/app/StringerProfileScreen';
 import { theme } from '../theme';
 import { useAuth } from '../context/AuthContext';
 import { ActivityIndicator, View } from 'react-native';
@@ -40,6 +41,11 @@ export const RootNavigator = () => {
           <Stack.Screen
             name="Home"
             component={HomeScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="StringerProfile"
+            component={StringerProfileScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen

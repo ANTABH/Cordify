@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Dimensions } from 'react-native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE, Region } from 'react-native-maps';
+import { BlurView } from 'expo-blur';
 import { theme } from '../theme';
 
 const { width } = Dimensions.get('window');
@@ -14,6 +15,7 @@ export interface StringerMapPin {
   lng: number;
   sports: string[];
   startingPrice?: number;
+  avatarUrl?: string | null;
 }
 
 interface MapProps {
@@ -48,11 +50,15 @@ export const Map = ({ stringers, userLocation, onMarkerPress }: MapProps) => {
             <Marker
               key={stringer.id}
               coordinate={{ latitude: stringer.lat, longitude: stringer.lng }}
-              pinColor={markerColor}
               onPress={() => onMarkerPress?.(stringer)}
             >
+              <View style={[styles.customMarker, { backgroundColor: markerColor }]}>
+                <Text style={styles.customMarkerText}>
+                  {stringer.type === 'boutique' ? '🏬' : '👤'}
+                </Text>
+              </View>
               <Callout tooltip>
-                <View style={styles.calloutContainer}>
+                <BlurView intensity={70} tint="light" style={styles.calloutContainer}>
                   <Text style={styles.calloutName}>{stringer.name}</Text>
                   <Text style={styles.calloutType}>
                     {stringer.type === 'boutique' ? 'Boutique' : 'Indépendant'}
@@ -60,7 +66,7 @@ export const Map = ({ stringers, userLocation, onMarkerPress }: MapProps) => {
                   {stringer.startingPrice && (
                     <Text style={styles.calloutPrice}>Dès {stringer.startingPrice} €</Text>
                   )}
-                </View>
+                </BlurView>
               </Callout>
             </Marker>
           );
@@ -81,12 +87,14 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   calloutContainer: {
-    backgroundColor: theme.colors.surface,
     padding: theme.spacing.sm,
     borderRadius: theme.borderRadius.input,
     minWidth: 120,
     alignItems: 'center',
-    ...theme.shadows.soft,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255, 255, 255, 0.65)',
+    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderWidth: 1,
   },
   calloutName: {
     fontFamily: theme.typography.fonts.bold,
@@ -104,5 +112,18 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fonts.semiBold,
     fontSize: theme.typography.sizes.badge,
     color: theme.colors.badmintonPrimary,
+  },
+  customMarker: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderColor: theme.colors.surface,
+    borderWidth: 2,
+    ...theme.shadows.soft,
+  },
+  customMarkerText: {
+    fontSize: 14,
   }
 });

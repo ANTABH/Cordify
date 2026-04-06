@@ -62,7 +62,8 @@ export const HomeScreen = () => {
           lat: item.lat,
           lng: item.lng,
           sports: item.sports,
-          startingPrice: 18 // TODO: Fetch from stock table later
+          startingPrice: 18,
+          avatarUrl: item.profiles.avatar_url
         }));
         setStringers(formattedStringers);
       }
@@ -145,15 +146,22 @@ export const HomeScreen = () => {
                 ? getDistanceFromLatLonInKm(location.coords.latitude, location.coords.longitude, stringer.lat, stringer.lng)
                 : '1.2';
 
-              const initials = stringer.name.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
               const isBadminton = stringer.sports.includes('badminton');
               const isTennis = stringer.sports.includes('tennis');
 
               return (
-                <View key={stringer.id} style={styles.bentoCard}>
+                <TouchableOpacity 
+                  key={stringer.id} 
+                  style={styles.bentoCard} 
+                  onPress={() => navigation.navigate('StringerProfile', { stringerId: stringer.id })}
+                >
                   <View style={styles.cardHeader}>
                     <View style={[styles.avatarPlaceholder, { backgroundColor: isBadminton ? theme.colors.badmintonPrimary : theme.colors.tennisPrimary }]}>
-                      <Text style={styles.avatarText}>{initials}</Text>
+                      {stringer.avatarUrl ? (
+                         <Text style={styles.avatarText}>IMG</Text> // placeholder si une vraie image doit être gérée plus tard avec <Image>
+                      ) : (
+                         <Text style={styles.avatarText}>{stringer.type === 'boutique' ? '🏬' : '👤'}</Text>
+                      )}
                     </View>
                     <View style={styles.cardInfo}>
                       <Text style={styles.stringerName}>{stringer.name}</Text>
@@ -180,7 +188,7 @@ export const HomeScreen = () => {
                   <View style={styles.priceRow}>
                     <Text style={styles.priceText}>Cordages à partir de <Text style={styles.priceHighlight}>{stringer.startingPrice} €</Text></Text>
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })
           )}
@@ -195,6 +203,7 @@ export const HomeScreen = () => {
               latitudeDelta: 0.1,
               longitudeDelta: 0.1
             } : undefined}
+            onMarkerPress={(stringer) => navigation.navigate('StringerProfile', { stringerId: stringer.id })}
           />
         </View>
       )}
