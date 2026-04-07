@@ -28,7 +28,7 @@ export const RootNavigator = () => {
         headerShown: true,
         headerStyle: { backgroundColor: theme.colors.background },
         headerShadowVisible: false,
-        //headerBackTitleVisible: false,
+        headerBackButtonDisplayMode: 'minimal',
         headerTintColor: theme.colors.textPrimary,
         headerTitleStyle: {
           fontFamily: theme.typography.fonts.semiBold,
