@@ -1,10 +1,12 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { OnboardingScreen } from '../screens/auth/OnboardingScreen';
-import { LoginScreen } from '../screens/auth/LoginScreen';
+import { RegisterScreen } from '../screens/auth/RegisterScreen';
 import { HomeScreen } from '../screens/app/HomeScreen';
 import { SettingsScreen } from '../screens/app/SettingsScreen';
 import { StringerProfileScreen } from '../screens/app/StringerProfileScreen';
+import { DashboardScreen } from '../screens/stringer/DashboardScreen';
+import { StockScreen } from '../screens/stringer/StockScreen';
 import { theme } from '../theme';
 import { useAuth } from '../context/AuthContext';
 import { ActivityIndicator, View } from 'react-native';
@@ -12,7 +14,7 @@ import { ActivityIndicator, View } from 'react-native';
 const Stack = createNativeStackNavigator();
 
 export const RootNavigator = () => {
-  const { session, loading } = useAuth();
+  const { session, loading, userRole } = useAuth();
 
   if (loading) {
     return (
@@ -36,7 +38,47 @@ export const RootNavigator = () => {
         }
       }}
     >
-      {session ? (
+      {!session ? (
+        // Auth Stack
+        <>
+          <Stack.Screen
+            name="Onboarding"
+            component={OnboardingScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Register"
+            component={RegisterScreen}
+            options={{
+              title: '',
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerShadowVisible: false,
+              headerBackButtonDisplayMode: 'minimal',
+              headerTintColor: theme.colors.textSecondary,
+            }}
+          />
+        </>
+      ) : userRole === 'stringer' ? (
+        // Stringer Stack
+        <>
+          <Stack.Screen
+            name="Dashboard"
+            component={DashboardScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Stock"
+            component={StockScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{ title: 'Paramètres' }}
+          />
+        </>
+      ) : (
+        // Client Stack
         <>
           <Stack.Screen
             name="Home"
@@ -49,30 +91,9 @@ export const RootNavigator = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="Settings"
-            component={SettingsScreen}
-            options={{ title: 'Paramètres' }}
-          />
-        </>
-      ) : (
-        // Auth Stack
-        <>
-          <Stack.Screen
-            name="Onboarding"
-            component={OnboardingScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={({ route }: any) => {
-              const isClient = route.params?.role === 'client';
-              return {
-                title: '',
-                headerTintColor: isClient ? theme.colors.badmintonPrimary : theme.colors.tennisPrimary,
-                headerStyle: { backgroundColor: theme.colors.surface }
-              }
-            }}
+             name="Settings"
+             component={SettingsScreen}
+             options={{ title: 'Paramètres' }}
           />
         </>
       )}

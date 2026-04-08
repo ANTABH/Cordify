@@ -1,12 +1,14 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, Animated, Easing } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Dimensions, Animated, Easing, KeyboardAvoidingView, Platform, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '../../components/Button';
+import { Input } from '../../components/Input';
 import { theme } from '../../theme';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { Trophy } from 'lucide-react-native';
+import { Trophy, Mail, Lock } from 'lucide-react-native';
+import { supabase } from '../../lib/supabase';
 
 const { width, height } = Dimensions.get('window');
 
@@ -14,6 +16,10 @@ export const OnboardingScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     Animated.parallel([
@@ -31,6 +37,22 @@ export const OnboardingScreen = () => {
     ]).start();
   }, []);
 
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Erreur', 'Veuillez remplir tous les champs.');
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+
+    if (error) {
+      Alert.alert('Erreur de connexion', error.message);
+    }
+    // Si succès, l'AuthContext détecte la session et le RootNavigator redirige automatiquement
+  };
+
   return (
     <View style={styles.container}>
       {/* Dynamic decorative background blobs */}
@@ -40,43 +62,80 @@ export const OnboardingScreen = () => {
       </View>
 
       <BlurView intensity={60} tint="light" style={styles.blurContainer}>
-
-        <Animated.View style={[
-          styles.header,
-          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
-        ]}>
-          <View style={styles.logoContainer}>
-            <Trophy color={theme.colors.badmintonPrimary} size={48} strokeWidth={2.5} />
-            <Text style={styles.logo}>CORDIFY</Text>
-          </View>
-          <Text style={styles.subtitle}>Trouve ton cordeur,{'\n'}corde ta victoire.</Text>
-        </Animated.View>
-
-        <Animated.View style={[
-          styles.bottomSection,
-          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
-        ]}>
-          <LinearGradient
-            colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
-            style={styles.card}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
           >
-            <Text style={styles.cardTitle}>Comment souhaitez-vous{'\n'}utiliser l'application ?</Text>
+            <Animated.View style={[
+              styles.header,
+              { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
+            ]}>
+              <View style={styles.logoContainer}>
+                <Trophy color={theme.colors.badmintonPrimary} size={48} strokeWidth={2.5} />
+                <Text style={styles.logo}>CORDIFY</Text>
+              </View>
+              <Text style={styles.subtitle}>Trouve ton cordeur,{'\n'}corde ta victoire.</Text>
+            </Animated.View>
 
-            <View style={styles.buttonGroup}>
-              <Button
-                title="Je suis un Joueur"
-                sportTheme="badminton"
-                onPress={() => navigation.navigate('Login', { role: 'client' })}
-              />
-              <Button
-                title="Je suis un Cordeur"
-                variant="outline"
-                sportTheme="tennis"
-                onPress={() => navigation.navigate('Login', { role: 'stringer' })}
-              />
-            </View>
-          </LinearGradient>
-        </Animated.View>
+            <Animated.View style={[
+              styles.bottomSection,
+              { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
+            ]}>
+              <LinearGradient
+                colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
+                style={styles.card}
+              >
+                <Text style={styles.cardTitle}>Connexion</Text>
+
+                <Input
+                  label="Adresse Email"
+                  placeholder="jean.dupont@email.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={email}
+                  onChangeText={setEmail}
+                  icon={Mail}
+                />
+                <Input
+                  label="Mot de passe"
+                  placeholder="••••••••"
+                  secureTextEntry
+                  value={password}
+                  onChangeText={setPassword}
+                  icon={Lock}
+                />
+
+                <Button
+                  title="Se connecter"
+                  sportTheme="badminton"
+                  onPress={handleLogin}
+                  loading={loading}
+                />
+
+                <View style={styles.divider}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>ou</Text>
+                  <View style={styles.dividerLine} />
+                </View>
+
+                <TouchableOpacity
+                  style={styles.registerLink}
+                  onPress={() => navigation.navigate('Register')}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.registerText}>
+                    Pas encore de compte ?{' '}
+                    <Text style={styles.registerTextBold}>S'inscrire</Text>
+                  </Text>
+                </TouchableOpacity>
+              </LinearGradient>
+            </Animated.View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </BlurView>
     </View>
   );
@@ -97,7 +156,7 @@ const styles = StyleSheet.create({
     width: width * 1.5,
     height: width * 1.5,
     borderRadius: width,
-    opacity: 0.2, // More subtle
+    opacity: 0.2,
   },
   blobBadminton: {
     backgroundColor: theme.colors.badmintonPrimary,
@@ -111,7 +170,10 @@ const styles = StyleSheet.create({
   },
   blurContainer: {
     flex: 1,
-    paddingTop: height * 0.1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingTop: height * 0.08,
     justifyContent: 'space-between',
   },
   logoContainer: {
@@ -139,26 +201,49 @@ const styles = StyleSheet.create({
   },
   bottomSection: {
     paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.xl,
+    paddingBottom: theme.spacing.lg,
   },
   card: {
     borderRadius: theme.borderRadius.container,
     padding: theme.spacing.xl,
-    paddingTop: theme.spacing.xl,
-    paddingBottom: theme.spacing.xl,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.8)',
     ...theme.shadows.elevated,
   },
   cardTitle: {
     fontFamily: theme.typography.fonts.semiBold,
-    fontSize: theme.typography.sizes.h3,
+    fontSize: theme.typography.sizes.h2,
     color: theme.colors.textPrimary,
     textAlign: 'center',
-    marginBottom: theme.spacing.xl,
-    lineHeight: 26,
+    marginBottom: theme.spacing.md,
   },
-  buttonGroup: {
-    gap: 4,
-  }
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: theme.spacing.md,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: theme.colors.border,
+  },
+  dividerText: {
+    fontFamily: theme.typography.fonts.medium,
+    fontSize: theme.typography.sizes.subtext,
+    color: theme.colors.textSecondary,
+    marginHorizontal: theme.spacing.sm,
+  },
+  registerLink: {
+    alignItems: 'center',
+    paddingVertical: theme.spacing.xs,
+  },
+  registerText: {
+    fontFamily: theme.typography.fonts.medium,
+    fontSize: theme.typography.sizes.body,
+    color: theme.colors.textSecondary,
+  },
+  registerTextBold: {
+    fontFamily: theme.typography.fonts.bold,
+    color: theme.colors.badmintonPrimary,
+  },
 });

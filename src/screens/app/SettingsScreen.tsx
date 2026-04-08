@@ -25,9 +25,8 @@ const SettingItem = ({ icon, label, onPress, color = theme.colors.textPrimary }:
 );
 
 export const SettingsScreen = () => {
-  const { session } = useAuth();
+  const { session, userRole } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const userRole = session?.user?.user_metadata?.role || 'client';
 
   const handleLogout = () => {
     supabase.auth.signOut();
@@ -42,7 +41,7 @@ export const SettingsScreen = () => {
             <Text style={styles.avatarText}>JD</Text>
           </View>
           <Text style={styles.profileName}>Jean Dupont</Text>
-          <Text style={styles.profileRole}>{userRole === 'client' ? 'Joueur' : 'Cordeur'}</Text>
+          <Text style={[styles.profileRole, { color: userRole === 'stringer' ? theme.colors.tennisPrimary : theme.colors.badmintonPrimary }]}>{userRole === 'client' ? 'Joueur' : 'Cordeur'}</Text>
           <Text style={styles.profileEmail}>{session?.user?.email}</Text>
         </View>
 

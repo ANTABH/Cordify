@@ -37,6 +37,29 @@ export const LoginScreen = () => {
         password,
         options: { data: { role } } 
       });
+      
+      // Post-signup : création automatique du profil dans la base de données
+      if (!result.error && result.data?.user) {
+        const userId = result.data.user.id;
+        
+        const { error: profileError } = await supabase.from('profiles').insert({
+          id: userId,
+          role: role,
+          first_name: 'Nouveau',
+          last_name: role === 'client' ? 'Joueur' : 'Cordeur',
+          email: email
+        });
+        
+        if (role === 'stringer' && !profileError) {
+          await supabase.from('stringer_profiles').insert({
+            id: userId,
+            type: 'independant',
+            description: 'Cordeur de test.',
+            address: 'Adresse non renseignée',
+            sports: ['badminton'],
+          });
+        }
+      }
     }
 
     setLoading(false);
