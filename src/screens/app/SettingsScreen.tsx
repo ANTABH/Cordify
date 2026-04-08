@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
-import { LogOut, ChevronRight, User, Bell, Shield, CircleHelp, Palette, Moon, Sun, Monitor, Smartphone } from 'lucide-react-native';
+import { LogOut, ChevronRight, User, Bell, Shield, CircleHelp, Palette, Moon, Sun, Monitor, Smartphone, Dumbbell } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -75,6 +75,13 @@ export const SettingsScreen = () => {
               label="Informations personnelles"
               onPress={() => { }}
             />
+            {userRole === 'client' && (
+              <SettingItem
+                icon={<Dumbbell size={20} color={theme.colors.textPrimary} />}
+                label="Mes raquettes"
+                onPress={() => navigation.navigate('Rackets')}
+              />
+            )}
             <SettingItem
               icon={<Bell size={20} color={theme.colors.textPrimary} />}
               label="Notifications"

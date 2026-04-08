@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Package, CalendarDays, Settings } from 'lucide-react-native';
+import { Package, CalendarDays, Settings, ClipboardList, Dumbbell } from 'lucide-react-native';
 
 export const DashboardScreen = () => {
   const { session } = useAuth();
@@ -13,6 +13,8 @@ export const DashboardScreen = () => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [stockCount, setStockCount] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [todayCount, setTodayCount] = useState(0);
   const { theme } = useTheme();
 
 
@@ -46,6 +48,29 @@ export const DashboardScreen = () => {
 
       if (countError) throw countError;
       setStockCount(count || 0);
+
+      // Fetch pending orders count
+      const { count: pCount, error: pError } = await supabase
+        .from('appointments')
+        .select('*', { count: 'exact', head: true })
+        .eq('stringer_id', userId)
+        .in('status', ['pending', 'accepted']);
+
+      if (!pError) setPendingCount(pCount || 0);
+
+      // Fetch today's appointments count
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+      
+      const { count: tCount, error: tError } = await supabase
+        .from('appointments')
+        .select('*', { count: 'exact', head: true })
+        .eq('stringer_id', userId)
+        .gte('scheduled_time', startOfDay)
+        .lt('scheduled_time', endOfDay);
+
+      if (!tError) setTodayCount(tCount || 0);
 
     } catch (err) {
       console.error(err);
@@ -85,12 +110,12 @@ export const DashboardScreen = () => {
       <ScrollView contentContainerStyle={themedStyles.scrollContent}>
         {/* KPI Cards */}
         <View style={themedStyles.kpiContainer}>
-          <View style={themedStyles.kpiCard}>
-            <Text style={themedStyles.kpiValue}>0</Text>
+          <TouchableOpacity style={themedStyles.kpiCard} onPress={() => navigation.navigate('Orders')}>
+            <Text style={themedStyles.kpiValue}>{pendingCount}</Text>
             <Text style={themedStyles.kpiLabel}>Commandes en cours</Text>
-          </View>
+          </TouchableOpacity>
           <View style={themedStyles.kpiCard}>
-            <Text style={themedStyles.kpiValue}>0</Text>
+            <Text style={themedStyles.kpiValue}>{todayCount}</Text>
             <Text style={themedStyles.kpiLabel}>RDV aujourd'hui</Text>
           </View>
         </View>
@@ -108,6 +133,19 @@ export const DashboardScreen = () => {
           <View style={themedStyles.actionInfo}>
             <Text style={themedStyles.actionCardTitle}>Mon Stock de Cordages</Text>
             <Text style={themedStyles.actionCardSubtitle}>{stockCount} cordages enregistrés</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={themedStyles.actionCard} 
+          onPress={() => navigation.navigate('Orders')}
+        >
+          <View style={[themedStyles.actionIconContainer, { backgroundColor: theme.colors.warning + '20' }]}>
+            <ClipboardList color={theme.colors.warning} size={28} />
+          </View>
+          <View style={themedStyles.actionInfo}>
+            <Text style={themedStyles.actionCardTitle}>Mes Commandes</Text>
+            <Text style={themedStyles.actionCardSubtitle}>{pendingCount} commande{pendingCount > 1 ? 's' : ''} en attente</Text>
           </View>
         </TouchableOpacity>
 
@@ -154,6 +192,10 @@ const styles = (theme: any) => StyleSheet.create({
     fontFamily: theme.typography.fonts.bold,
     fontSize: theme.typography.sizes.h1,
     color: theme.colors.textPrimary,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
   },
   iconButton: {
     width: 44,

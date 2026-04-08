@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { ArrowLeft, MapPin, CreditCard, Star, Calendar } from 'lucide-react-native';
 
 export const StringerProfileScreen = () => {
   const route = useRoute<any>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { stringerId } = route.params || {};
   const { theme, isDark } = useTheme();
 
@@ -175,7 +176,10 @@ export const StringerProfileScreen = () => {
       </ScrollView>
 
       <View style={themedStyles.floatingActionContainer}>
-        <TouchableOpacity style={themedStyles.bookButtonWrapper} onPress={() => {}}>
+        <TouchableOpacity 
+          style={themedStyles.bookButtonWrapper} 
+          onPress={() => navigation.navigate('Booking', { stringerId })}
+        >
           <BlurView intensity={80} tint={isDark ? 'light' : 'dark'} style={themedStyles.bookButtonGlass}>
             <Calendar color={isDark ? theme.colors.textPrimary : theme.colors.surface} size={20} style={{ marginRight: 8 }} />
             <Text style={[themedStyles.bookButtonText, { color: isDark ? theme.colors.textPrimary : theme.colors.surface }]}>Prendre un RDV</Text>

@@ -7,6 +7,8 @@ import * as Location from 'expo-location';
 import { Map, StringerMapPin } from '../../components/Map';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useAuth } from '../../context/AuthContext';
+import { RacketIcon } from '../../components/RacketIcon';
 
 export const HomeScreen = () => {
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
@@ -17,6 +19,7 @@ export const HomeScreen = () => {
 
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { theme, isDark } = useTheme();
+  const { userRole } = useAuth();
   const themedStyles = styles(theme);
 
   useEffect(() => {
@@ -56,13 +59,13 @@ export const HomeScreen = () => {
       if (data) {
         const formattedStringers: StringerMapPin[] = data.map((item: any) => ({
           id: item.id,
-          name: `${item.profiles.first_name} ${item.profiles.last_name}`,
+          name: item.profiles ? `${item.profiles.first_name} ${item.profiles.last_name}` : 'Utilisateur',
           type: item.type,
           lat: item.lat,
           lng: item.lng,
-          sports: item.sports,
+          sports: item.sports || [],
           startingPrice: 18,
-          avatarUrl: item.profiles.avatar_url
+          avatarUrl: item.profiles?.avatar_url
         }));
         setStringers(formattedStringers);
       }
@@ -91,6 +94,14 @@ export const HomeScreen = () => {
         <View style={themedStyles.headerTop}>
           <Text style={themedStyles.greeting}>Bonjour 👋</Text>
           <View style={themedStyles.headerActions}>
+            {userRole === 'client' && (
+              <TouchableOpacity
+                style={[themedStyles.iconButton, { backgroundColor: theme.colors.badmintonPrimary }]}
+                onPress={() => navigation.navigate('Rackets')}
+              >
+                <RacketIcon size={22} color="#FFFFFF" />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={themedStyles.iconButton}
               onPress={() => navigation.navigate('Settings')}

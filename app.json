@@ -40,7 +40,8 @@
         {
           "locationAlwaysAndWhenInUsePermission": "L'application a besoin d'accéder à votre position pour trouver les cordeurs à proximité."
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ]
   }
 }

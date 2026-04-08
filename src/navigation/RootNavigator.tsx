@@ -8,6 +8,9 @@ import { SettingsScreen } from '../screens/app/SettingsScreen';
 import { StringerProfileScreen } from '../screens/app/StringerProfileScreen';
 import { DashboardScreen } from '../screens/stringer/DashboardScreen';
 import { StockScreen } from '../screens/stringer/StockScreen';
+import { OrdersScreen } from '../screens/stringer/OrdersScreen';
+import { RacketsScreen } from '../screens/app/RacketsScreen';
+import { BookingScreen } from '../screens/app/BookingScreen';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { ActivityIndicator, View } from 'react-native';
@@ -82,9 +85,14 @@ export const RootNavigator = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
+            name="Orders"
+            component={OrdersScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
             name="Settings"
             component={SettingsScreen}
-            options={{ 
+            options={{
               title: 'Paramètres',
               headerStyle: { backgroundColor: theme.colors.background },
               headerTintColor: theme.colors.textPrimary,
@@ -108,9 +116,19 @@ export const RootNavigator = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
+            name="Rackets"
+            component={RacketsScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Booking"
+            component={BookingScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
             name="Settings"
             component={SettingsScreen}
-            options={{ 
+            options={{
               title: 'Paramètres',
               headerStyle: { backgroundColor: theme.colors.background },
               headerTintColor: theme.colors.textPrimary,
