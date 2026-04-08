@@ -1,94 +1,142 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
-import { theme } from '../../theme';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
-import { LogOut, ChevronRight, User, Bell, Shield, CircleHelp } from 'lucide-react-native';
+import { LogOut, ChevronRight, User, Bell, Shield, CircleHelp, Palette, Moon, Sun, Monitor, Smartphone } from 'lucide-react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Picker } from '@react-native-picker/picker';
 
 interface SettingItemProps {
   icon: React.ReactNode;
   label: string;
-  onPress: () => void;
+  onPress?: () => void;
   color?: string;
+  rightElement?: React.ReactNode;
 }
 
-const SettingItem = ({ icon, label, onPress, color = theme.colors.textPrimary }: SettingItemProps) => (
-  <TouchableOpacity style={styles.settingItem} onPress={onPress}>
-    <View style={styles.settingItemLeft}>
-      {icon}
-      <Text style={[styles.settingItemLabel, { color }]}>{label}</Text>
+const SettingItem = ({ icon, label, onPress, color, rightElement }: SettingItemProps) => {
+  const { theme } = useTheme();
+  const textColor = color || theme.colors.textPrimary;
+
+  const content = (
+    <View style={styles(theme).settingItem}>
+      <View style={styles(theme).settingItemLeft}>
+        {icon}
+        <Text style={[styles(theme).settingItemLabel, { color: textColor }]}>{label}</Text>
+      </View>
+      {rightElement || <ChevronRight size={20} color={theme.colors.textSecondary} />}
     </View>
-    <ChevronRight size={20} color={theme.colors.textSecondary} />
-  </TouchableOpacity>
-);
+  );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity onPress={onPress}>
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return content;
+};
 
 export const SettingsScreen = () => {
   const { session, userRole } = useAuth();
+  const { theme, themeMode, setThemeMode, isDark } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
   const handleLogout = () => {
     supabase.auth.signOut();
   };
 
+  const themedStyles = styles(theme);
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        
-        <View style={styles.profileSection}>
-          <View style={styles.avatarPlaceholder}>
-            <Text style={styles.avatarText}>JD</Text>
+    <SafeAreaView style={themedStyles.safeArea}>
+      <ScrollView contentContainerStyle={themedStyles.scrollContent}>
+
+        <View style={themedStyles.profileSection}>
+          <View style={[themedStyles.avatarPlaceholder, { backgroundColor: userRole === 'stringer' ? theme.colors.tennisPrimary : theme.colors.badmintonPrimary }]}>
+            <Text style={themedStyles.avatarText}>{session?.user?.email?.substring(0, 2).toUpperCase() || 'U'}</Text>
           </View>
-          <Text style={styles.profileName}>Jean Dupont</Text>
-          <Text style={[styles.profileRole, { color: userRole === 'stringer' ? theme.colors.tennisPrimary : theme.colors.badmintonPrimary }]}>{userRole === 'client' ? 'Joueur' : 'Cordeur'}</Text>
-          <Text style={styles.profileEmail}>{session?.user?.email}</Text>
+          <Text style={themedStyles.profileName}>Utilisateur Cordify</Text>
+          <Text style={[themedStyles.profileRole, { color: userRole === 'stringer' ? theme.colors.tennisPrimary : theme.colors.badmintonPrimary }]}>
+            {userRole === 'client' ? 'Joueur' : 'Cordeur'}
+          </Text>
+          <Text style={themedStyles.profileEmail}>{session?.user?.email}</Text>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Compte</Text>
-          <View style={styles.settingsGroup}>
-            <SettingItem 
-              icon={<User size={20} color={theme.colors.textPrimary} />} 
-              label="Informations personnelles" 
-              onPress={() => {}} 
+        <View style={themedStyles.section}>
+          <Text style={themedStyles.sectionTitle}>Compte</Text>
+          <View style={themedStyles.settingsGroup}>
+            <SettingItem
+              icon={<User size={20} color={theme.colors.textPrimary} />}
+              label="Informations personnelles"
+              onPress={() => { }}
             />
-            <SettingItem 
-              icon={<Bell size={20} color={theme.colors.textPrimary} />} 
-              label="Notifications" 
-              onPress={() => {}} 
+            <SettingItem
+              icon={<Bell size={20} color={theme.colors.textPrimary} />}
+              label="Notifications"
+              onPress={() => { }}
             />
-            <SettingItem 
-              icon={<Shield size={20} color={theme.colors.textPrimary} />} 
-              label="Confidentialité et sécurité" 
-              onPress={() => {}} 
-            />
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Support</Text>
-          <View style={styles.settingsGroup}>
-            <SettingItem 
-              icon={<CircleHelp size={20} color={theme.colors.textPrimary} />} 
-              label="Aide et contact" 
-              onPress={() => {}} 
+            <SettingItem
+              icon={<Shield size={20} color={theme.colors.textPrimary} />}
+              label="Confidentialité et sécurité"
+              onPress={() => { }}
             />
           </View>
         </View>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <View style={themedStyles.section}>
+          <Text style={themedStyles.sectionTitle}>Apparence</Text>
+          <View style={themedStyles.settingsGroup}>
+            <View style={themedStyles.pickerContainer}>
+              <View style={themedStyles.settingItemLeft}>
+                {themeMode === 'light' ? <Sun size={20} color={theme.colors.textPrimary} /> :
+                  themeMode === 'dark' ? <Moon size={20} color={theme.colors.textPrimary} /> :
+                    <Smartphone size={20} color={theme.colors.textPrimary} />}
+                <Text style={themedStyles.settingItemLabel}>Mode d'affichage</Text>
+              </View>
+              <Picker
+                selectedValue={themeMode}
+                onValueChange={(itemValue) => setThemeMode(itemValue)}
+                style={themedStyles.picker}
+                itemStyle={themedStyles.pickerItem}
+                dropdownIconColor={theme.colors.textPrimary}
+                mode="dropdown"
+              >
+                <Picker.Item label="Clair" value="light" color={theme.colors.textPrimary} />
+                <Picker.Item label="Sombre" value="dark" color={theme.colors.textPrimary} />
+                <Picker.Item label="Système" value="system" color={theme.colors.textPrimary} />
+              </Picker>
+            </View>
+          </View>
+        </View>
+
+        <View style={themedStyles.section}>
+          <Text style={themedStyles.sectionTitle}>Support</Text>
+          <View style={themedStyles.settingsGroup}>
+            <SettingItem
+              icon={<CircleHelp size={20} color={theme.colors.textPrimary} />}
+              label="Aide et contact"
+              onPress={() => { }}
+            />
+          </View>
+        </View>
+
+        <TouchableOpacity style={themedStyles.logoutButton} onPress={handleLogout}>
           <LogOut size={20} color={theme.colors.alert} />
-          <Text style={styles.logoutText}>Se déconnecter</Text>
+          <Text style={themedStyles.logoutText}>Se déconnecter</Text>
         </TouchableOpacity>
 
-        <Text style={styles.versionText}>Version 1.0.0</Text>
+        <Text style={themedStyles.versionText}>Version 1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -106,13 +154,13 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: theme.colors.badmintonPrimary,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: theme.spacing.md,
+    ...theme.shadows.soft,
   },
   avatarText: {
-    color: theme.colors.surface,
+    color: '#FFFFFF',
     fontFamily: theme.typography.fonts.bold,
     fontSize: 32,
   },
@@ -125,7 +173,6 @@ const styles = StyleSheet.create({
   profileRole: {
     fontFamily: theme.typography.fonts.semiBold,
     fontSize: theme.typography.sizes.body,
-    color: theme.colors.badmintonPrimary,
     marginBottom: 4,
   },
   profileEmail: {
@@ -165,6 +212,24 @@ const styles = StyleSheet.create({
   settingItemLabel: {
     fontFamily: theme.typography.fonts.medium,
     fontSize: theme.typography.sizes.body,
+    color: theme.colors.textPrimary,
+  },
+  pickerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingLeft: theme.spacing.md,
+    height: 64,
+  },
+  picker: {
+    width: 150,
+    color: theme.colors.textPrimary,
+    backgroundColor: 'transparent',
+  },
+  pickerItem: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.typography.sizes.body,
+    fontFamily: theme.typography.fonts.medium,
   },
   logoutButton: {
     flexDirection: 'row',
@@ -189,3 +254,4 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
   }
 });
+

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Alert, ScrollView } from 'react-native';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
-import { theme } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { supabase } from '../../lib/supabase';
@@ -11,6 +11,7 @@ export const LoginScreen = () => {
   const route = useRoute();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const role = (route.params as any)?.role || 'client';
+  const { theme } = useTheme();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,7 +39,6 @@ export const LoginScreen = () => {
         options: { data: { role } } 
       });
       
-      // Post-signup : création automatique du profil dans la base de données
       if (!result.error && result.data?.user) {
         const userId = result.data.user.id;
         
@@ -67,26 +67,26 @@ export const LoginScreen = () => {
     if (result.error) {
       Alert.alert('Erreur technique', result.error.message);
     } else {
-      // Pour la phase MVP, afficher un succès
       Alert.alert('Succès', 'Connecté avec succès !');
-      // Plus tard: redirection vers HomeScreen
     }
   };
 
+  const themedStyles = styles(theme);
+
   return (
     <KeyboardAvoidingView 
-      style={styles.container} 
+      style={themedStyles.container} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={styles.title}>
+      <ScrollView contentContainerStyle={themedStyles.scrollContent}>
+        <View style={themedStyles.header}>
+          <Text style={themedStyles.title}>
             {isLogin ? 'Bon retour' : 'Créer un compte'}
           </Text>
-          <Text style={styles.subtitle}>Espace {roleName}</Text>
+          <Text style={themedStyles.subtitle}>Espace {roleName}</Text>
         </View>
 
-        <View style={styles.formCard}>
+        <View style={themedStyles.formCard}>
           <Input 
             label="Adresse Email"
             placeholder="jean.dupont@email.com"
@@ -123,7 +123,7 @@ export const LoginScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,

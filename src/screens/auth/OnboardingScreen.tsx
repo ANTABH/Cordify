@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, Animated, Easing, KeyboardAvoidingView, Platform, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
-import { theme } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,6 +16,7 @@ export const OnboardingScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
+  const { theme, isDark } = useTheme();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -50,46 +51,46 @@ export const OnboardingScreen = () => {
     if (error) {
       Alert.alert('Erreur de connexion', error.message);
     }
-    // Si succès, l'AuthContext détecte la session et le RootNavigator redirige automatiquement
   };
 
+  const themedStyles = styles(theme);
+
   return (
-    <View style={styles.container}>
-      {/* Dynamic decorative background blobs */}
-      <View style={styles.backgroundBlobs}>
-        <View style={[styles.blob, styles.blobTennis]} />
-        <View style={[styles.blob, styles.blobBadminton]} />
+    <View style={themedStyles.container}>
+      <View style={themedStyles.backgroundBlobs}>
+        <View style={[themedStyles.blob, themedStyles.blobTennis]} />
+        <View style={[themedStyles.blob, themedStyles.blobBadminton]} />
       </View>
 
-      <BlurView intensity={60} tint="light" style={styles.blurContainer}>
+      <BlurView intensity={60} tint={isDark ? 'dark' : 'light'} style={themedStyles.blurContainer}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <ScrollView
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={themedStyles.scrollContent}
             keyboardShouldPersistTaps="handled"
           >
             <Animated.View style={[
-              styles.header,
+              themedStyles.header,
               { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
             ]}>
-              <View style={styles.logoContainer}>
+              <View style={themedStyles.logoContainer}>
                 <Trophy color={theme.colors.badmintonPrimary} size={48} strokeWidth={2.5} />
-                <Text style={styles.logo}>CORDIFY</Text>
+                <Text style={themedStyles.logo}>CORDIFY</Text>
               </View>
-              <Text style={styles.subtitle}>Trouve ton cordeur,{'\n'}corde ta victoire.</Text>
+              <Text style={themedStyles.subtitle}>Trouve ton cordeur,{'\n'}corde ta victoire.</Text>
             </Animated.View>
 
             <Animated.View style={[
-              styles.bottomSection,
+              themedStyles.bottomSection,
               { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
             ]}>
               <LinearGradient
-                colors={['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
-                style={styles.card}
+                colors={isDark ? ['rgba(30, 30, 40, 0.95)', 'rgba(20, 20, 30, 0.85)'] : ['rgba(255, 255, 255, 0.95)', 'rgba(255, 255, 255, 0.85)']}
+                style={themedStyles.card}
               >
-                <Text style={styles.cardTitle}>Connexion</Text>
+                <Text style={themedStyles.cardTitle}>Connexion</Text>
 
                 <Input
                   label="Adresse Email"
@@ -116,20 +117,20 @@ export const OnboardingScreen = () => {
                   loading={loading}
                 />
 
-                <View style={styles.divider}>
-                  <View style={styles.dividerLine} />
-                  <Text style={styles.dividerText}>ou</Text>
-                  <View style={styles.dividerLine} />
+                <View style={themedStyles.divider}>
+                  <View style={themedStyles.dividerLine} />
+                  <Text style={themedStyles.dividerText}>ou</Text>
+                  <View style={themedStyles.dividerLine} />
                 </View>
 
                 <TouchableOpacity
-                  style={styles.registerLink}
+                  style={themedStyles.registerLink}
                   onPress={() => navigation.navigate('Register')}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.registerText}>
+                  <Text style={themedStyles.registerText}>
                     Pas encore de compte ?{' '}
-                    <Text style={styles.registerTextBold}>S'inscrire</Text>
+                    <Text style={themedStyles.registerTextBold}>S'inscrire</Text>
                   </Text>
                 </TouchableOpacity>
               </LinearGradient>
@@ -141,15 +142,15 @@ export const OnboardingScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: theme.colors.background,
   },
   backgroundBlobs: {
     ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.background,
   },
   blob: {
     position: 'absolute',
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.container,
     padding: theme.spacing.xl,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     ...theme.shadows.elevated,
   },
   cardTitle: {
@@ -247,3 +248,4 @@ const styles = StyleSheet.create({
     color: theme.colors.badmintonPrimary,
   },
 });
+

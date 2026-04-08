@@ -2,19 +2,21 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { OnboardingScreen } from '../screens/auth/OnboardingScreen';
 import { RegisterScreen } from '../screens/auth/RegisterScreen';
+import { LoginScreen } from '../screens/auth/LoginScreen';
 import { HomeScreen } from '../screens/app/HomeScreen';
 import { SettingsScreen } from '../screens/app/SettingsScreen';
 import { StringerProfileScreen } from '../screens/app/StringerProfileScreen';
 import { DashboardScreen } from '../screens/stringer/DashboardScreen';
 import { StockScreen } from '../screens/stringer/StockScreen';
-import { theme } from '../theme';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { ActivityIndicator, View } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
 export const RootNavigator = () => {
   const { session, loading, userRole } = useAuth();
+  const { theme } = useTheme();
 
   if (loading) {
     return (
@@ -34,7 +36,8 @@ export const RootNavigator = () => {
         headerTintColor: theme.colors.textPrimary,
         headerTitleStyle: {
           fontFamily: theme.typography.fonts.semiBold,
-          fontSize: theme.typography.sizes.h3
+          fontSize: theme.typography.sizes.h3,
+          color: theme.colors.textPrimary
         }
       }}
     >
@@ -47,13 +50,20 @@ export const RootNavigator = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{
+              title: '',
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.textSecondary,
+            }}
+          />
+          <Stack.Screen
             name="Register"
             component={RegisterScreen}
             options={{
               title: '',
               headerStyle: { backgroundColor: theme.colors.background },
-              headerShadowVisible: false,
-              headerBackButtonDisplayMode: 'minimal',
               headerTintColor: theme.colors.textSecondary,
             }}
           />
@@ -74,7 +84,14 @@ export const RootNavigator = () => {
           <Stack.Screen
             name="Settings"
             component={SettingsScreen}
-            options={{ title: 'Paramètres' }}
+            options={{ 
+              title: 'Paramètres',
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.textPrimary,
+              headerTitleStyle: {
+                color: theme.colors.textPrimary
+              }
+            }}
           />
         </>
       ) : (
@@ -91,12 +108,20 @@ export const RootNavigator = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-             name="Settings"
-             component={SettingsScreen}
-             options={{ title: 'Paramètres' }}
+            name="Settings"
+            component={SettingsScreen}
+            options={{ 
+              title: 'Paramètres',
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.textPrimary,
+              headerTitleStyle: {
+                color: theme.colors.textPrimary
+              }
+            }}
           />
         </>
       )}
     </Stack.Navigator>
   );
 };
+

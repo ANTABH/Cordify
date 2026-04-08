@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TouchableWithoutFeedback, ActivityIndicator, Alert, Modal, TextInput, Switch, KeyboardAvoidingView, Platform } from 'react-native';
-import { theme } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +12,7 @@ export const StockScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [loading, setLoading] = useState(true);
   const [stock, setStock] = useState<any[]>([]);
+  const { theme, isDark } = useTheme();
 
   // Modal state
   const [modalVisible, setModalVisible] = useState(false);
@@ -201,10 +202,12 @@ export const StockScreen = () => {
     );
   };
 
+  const themedStyles = styles(theme);
+
   if (loading && stock.length === 0) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.loadingContainer}>
+      <SafeAreaView style={themedStyles.safeArea}>
+        <View style={themedStyles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.badmintonPrimary} />
         </View>
       </SafeAreaView>
@@ -212,54 +215,54 @@ export const StockScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+    <SafeAreaView style={themedStyles.safeArea}>
+      <View style={themedStyles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={themedStyles.backButton}>
           <ArrowLeft color={theme.colors.textPrimary} size={24} />
         </TouchableOpacity>
         <View>
-          <Text style={styles.headerTitle}>Mon Stock</Text>
-          <Text style={styles.headerSubtitle}>{stock.length} cordage{stock.length > 1 ? 's' : ''} enregistré{stock.length > 1 ? 's' : ''}</Text>
+          <Text style={themedStyles.headerTitle}>Mon Stock</Text>
+          <Text style={themedStyles.headerSubtitle}>{stock.length} cordage{stock.length > 1 ? 's' : ''} enregistré{stock.length > 1 ? 's' : ''}</Text>
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={themedStyles.scrollContent}>
         {stock.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Votre stock est vide.</Text>
-            <Text style={styles.emptySubText}>Ajoutez vos premiers cordages pour commencer à recevoir des prises de rendez-vous.</Text>
+          <View style={themedStyles.emptyContainer}>
+            <Text style={themedStyles.emptyText}>Votre stock est vide.</Text>
+            <Text style={themedStyles.emptySubText}>Ajoutez vos premiers cordages pour commencer à recevoir des prises de rendez-vous.</Text>
           </View>
         ) : (
           stock.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.stockCard} onPress={() => openEditModal(item)} activeOpacity={0.7}>
-              <View style={styles.stockInfo}>
-                <View style={styles.nameRow}>
-                  <Text style={styles.sportEmoji}>{item.sport === 'tennis' ? '🎾' : '🏸'}</Text>
-                  <Text style={styles.stockName}>{item.reference_strings?.name || item.custom_name}</Text>
+            <TouchableOpacity key={item.id} style={themedStyles.stockCard} onPress={() => openEditModal(item)} activeOpacity={0.7}>
+              <View style={themedStyles.stockInfo}>
+                <View style={themedStyles.nameRow}>
+                  <Text style={themedStyles.sportEmoji}>{item.sport === 'tennis' ? '🎾' : '🏸'}</Text>
+                  <Text style={themedStyles.stockName}>{item.reference_strings?.name || item.custom_name}</Text>
                 </View>
                 {item.reference_strings?.brand && (
-                  <Text style={styles.stockBrand}>{item.reference_strings.brand}</Text>
+                  <Text style={themedStyles.stockBrand}>{item.reference_strings.brand}</Text>
                 )}
-                <View style={styles.badgeRow}>
-                  <View style={styles.laborBadge}>
-                    <Text style={styles.laborText}>
+                <View style={themedStyles.badgeRow}>
+                  <View style={themedStyles.laborBadge}>
+                    <Text style={themedStyles.laborText}>
                       {item.includes_labor ? 'Pose incluse' : 'Sans pose'}
                     </Text>
                   </View>
-                  <View style={styles.quantityBadge}>
-                    <Text style={styles.quantityText}>
+                  <View style={themedStyles.quantityBadge}>
+                    <Text style={themedStyles.quantityText}>
                       {item.quantity || 0} disponible{(item.quantity || 0) > 1 ? 's' : ''}
                     </Text>
                   </View>
                 </View>
               </View>
-              <View style={styles.stockActions}>
-                <Text style={styles.stockPrice}>{item.price} €</Text>
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity onPress={() => openEditModal(item)} style={styles.editBtn}>
+              <View style={themedStyles.stockActions}>
+                <Text style={themedStyles.stockPrice}>{item.price} €</Text>
+                <View style={themedStyles.actionButtons}>
+                  <TouchableOpacity onPress={() => openEditModal(item)} style={themedStyles.editBtn}>
                     <Pencil color={theme.colors.tennisPrimary} size={18} />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteBtn}>
+                  <TouchableOpacity onPress={() => handleDelete(item.id)} style={themedStyles.deleteBtn}>
                     <Trash2 color={theme.colors.alert} size={18} />
                   </TouchableOpacity>
                 </View>
@@ -269,61 +272,57 @@ export const StockScreen = () => {
         )}
       </ScrollView>
 
-      {/* Bouton Ajouter */}
-      <View style={styles.floatingActionContainer}>
-        <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
+      <View style={themedStyles.floatingActionContainer}>
+        <TouchableOpacity style={themedStyles.addButton} onPress={openAddModal}>
           <Plus color={theme.colors.surface} size={24} />
-          <Text style={styles.addButtonText}>Ajouter un cordage</Text>
+          <Text style={themedStyles.addButtonText}>Ajouter un cordage</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Modal Ajout / Édition */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <KeyboardAvoidingView 
-          style={styles.modalOverlay} 
+          style={themedStyles.modalOverlay} 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          {/* Zone sombre cliquable pour fermer */}
           <TouchableWithoutFeedback onPress={confirmClose}>
-            <View style={styles.modalDismissArea} />
+            <View style={themedStyles.modalDismissArea} />
           </TouchableWithoutFeedback>
 
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{editingItem ? 'Modifier le cordage' : 'Nouveau cordage'}</Text>
+          <View style={themedStyles.modalContent}>
+            <Text style={themedStyles.modalTitle}>{editingItem ? 'Modifier le cordage' : 'Nouveau cordage'}</Text>
             
-            <Text style={styles.inputLabel}>Nom personnalisé</Text>
+            <Text style={themedStyles.inputLabel}>Nom personnalisé</Text>
             <TextInput
-              style={styles.input}
+              style={themedStyles.input}
               placeholder="Ex: Yonex BG65 Ti"
               placeholderTextColor={theme.colors.textSecondary}
               value={customName}
               onChangeText={setCustomName}
             />
 
-            {/* Sport selector */}
-            <Text style={styles.inputLabel}>Sport</Text>
-            <View style={styles.sportSelector}>
+            <Text style={themedStyles.inputLabel}>Sport</Text>
+            <View style={themedStyles.sportSelector}>
               <TouchableOpacity 
-                style={[styles.sportBtn, sport === 'badminton' && styles.sportBtnActiveBad]}
+                style={[themedStyles.sportBtn, sport === 'badminton' && themedStyles.sportBtnActiveBad]}
                 onPress={() => setSport('badminton')}
               >
-                <Text style={styles.sportBtnEmoji}>🏸</Text>
-                <Text style={[styles.sportBtnText, sport === 'badminton' && styles.sportBtnTextActive]}>Badminton</Text>
+                <Text style={themedStyles.sportBtnEmoji}>🏸</Text>
+                <Text style={[themedStyles.sportBtnText, sport === 'badminton' && themedStyles.sportBtnTextActive]}>Badminton</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.sportBtn, sport === 'tennis' && styles.sportBtnActiveTen]}
+                style={[themedStyles.sportBtn, sport === 'tennis' && themedStyles.sportBtnActiveTen]}
                 onPress={() => setSport('tennis')}
               >
-                <Text style={styles.sportBtnEmoji}>🎾</Text>
-                <Text style={[styles.sportBtnText, sport === 'tennis' && styles.sportBtnTextActive]}>Tennis</Text>
+                <Text style={themedStyles.sportBtnEmoji}>🎾</Text>
+                <Text style={[themedStyles.sportBtnText, sport === 'tennis' && themedStyles.sportBtnTextActive]}>Tennis</Text>
               </TouchableOpacity>
             </View>
 
-            <View style={styles.rowInputs}>
-              <View style={styles.halfInput}>
-                <Text style={styles.inputLabel}>Prix (€)</Text>
+            <View style={themedStyles.rowInputs}>
+              <View style={themedStyles.halfInput}>
+                <Text style={themedStyles.inputLabel}>Prix (€)</Text>
                 <TextInput
-                  style={styles.input}
+                  style={themedStyles.input}
                   placeholder="18.00"
                   placeholderTextColor={theme.colors.textSecondary}
                   keyboardType="decimal-pad"
@@ -331,10 +330,10 @@ export const StockScreen = () => {
                   onChangeText={setPrice}
                 />
               </View>
-              <View style={styles.halfInput}>
-                <Text style={styles.inputLabel}>Quantité</Text>
+              <View style={themedStyles.halfInput}>
+                <Text style={themedStyles.inputLabel}>Quantité</Text>
                 <TextInput
-                  style={styles.input}
+                  style={themedStyles.input}
                   placeholder="1"
                   placeholderTextColor={theme.colors.textSecondary}
                   keyboardType="number-pad"
@@ -344,8 +343,8 @@ export const StockScreen = () => {
               </View>
             </View>
 
-            <View style={styles.laborToggleContainer}>
-              <Text style={styles.inputLabel}>Main d'oeuvre incluse</Text>
+            <View style={themedStyles.laborToggleContainer}>
+              <Text style={themedStyles.inputLabel}>Main d'oeuvre incluse</Text>
               <Switch
                 value={includesLabor}
                 onValueChange={setIncludesLabor}
@@ -354,15 +353,15 @@ export const StockScreen = () => {
               />
             </View>
 
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.modalCancel} onPress={confirmClose} disabled={saving}>
-                <Text style={styles.modalCancelText}>Annuler</Text>
+            <View style={themedStyles.modalActions}>
+              <TouchableOpacity style={themedStyles.modalCancel} onPress={confirmClose} disabled={saving}>
+                <Text style={themedStyles.modalCancelText}>Annuler</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalSave} onPress={handleSave} disabled={saving}>
+              <TouchableOpacity style={themedStyles.modalSave} onPress={handleSave} disabled={saving}>
                 {saving ? (
                   <ActivityIndicator color={theme.colors.surface} />
                 ) : (
-                  <Text style={styles.modalSaveText}>{editingItem ? 'Enregistrer' : 'Ajouter'}</Text>
+                  <Text style={themedStyles.modalSaveText}>{editingItem ? 'Enregistrer' : 'Ajouter'}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -373,7 +372,7 @@ export const StockScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -605,7 +604,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
   },
   sportBtnTextActive: {
-    color: theme.colors.surface,
+    color: '#FFFFFF',
   },
   rowInputs: {
     flexDirection: 'row',
@@ -644,6 +643,7 @@ const styles = StyleSheet.create({
   },
   modalSaveText: {
     fontFamily: theme.typography.fonts.bold,
-    color: theme.colors.surface,
+    color: '#FFFFFF',
   }
 });
+

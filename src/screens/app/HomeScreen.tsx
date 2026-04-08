@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Platform, ActivityIndicator } from 'react-native';
-import { theme } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { Search, SlidersHorizontal, Settings, LogOut, MapPin } from 'lucide-react-native';
 import * as Location from 'expo-location';
@@ -16,10 +16,11 @@ export const HomeScreen = () => {
   const [locationError, setLocationError] = useState<string | null>(null);
 
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { theme, isDark } = useTheme();
+  const themedStyles = styles(theme);
 
   useEffect(() => {
     (async () => {
-      // 1. Demande de permission de geolocalisation
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         setLocationError('La permission de localisation a été refusée.');
@@ -28,7 +29,6 @@ export const HomeScreen = () => {
         setLocation(currentLocation);
       }
 
-      // 2. Fetch des cordeurs
       await fetchStringers();
     })();
   }, []);
@@ -54,7 +54,6 @@ export const HomeScreen = () => {
       if (error) throw error;
 
       if (data) {
-        // Mapping vers le format du composant Map
         const formattedStringers: StringerMapPin[] = data.map((item: any) => ({
           id: item.id,
           name: `${item.profiles.first_name} ${item.profiles.last_name}`,
@@ -74,13 +73,8 @@ export const HomeScreen = () => {
     }
   };
 
-  const handleLogout = () => {
-    supabase.auth.signOut();
-  };
-
-  // Calcul basique de distance en km (Formule de Haversine)
   const getDistanceFromLatLonInKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // Rayon de la terre en km
+    const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a =
@@ -92,13 +86,13 @@ export const HomeScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <Text style={styles.greeting}>Bonjour 👋</Text>
-          <View style={styles.headerActions}>
+    <SafeAreaView style={themedStyles.safeArea}>
+      <View style={themedStyles.header}>
+        <View style={themedStyles.headerTop}>
+          <Text style={themedStyles.greeting}>Bonjour 👋</Text>
+          <View style={themedStyles.headerActions}>
             <TouchableOpacity
-              style={styles.iconButton}
+              style={themedStyles.iconButton}
               onPress={() => navigation.navigate('Settings')}
             >
               <Settings size={24} color={theme.colors.textPrimary} />
@@ -106,40 +100,38 @@ export const HomeScreen = () => {
           </View>
         </View>
 
-        <View style={styles.searchContainer}>
-          <Search size={20} color={theme.colors.textSecondary} style={styles.searchIcon} />
-          <Text style={styles.searchPlaceholder}>Rechercher un cordeur...</Text>
-          <TouchableOpacity style={styles.filterButton}>
-            <SlidersHorizontal size={20} color={theme.colors.surface} />
+        <View style={themedStyles.searchContainer}>
+          <Search size={20} color={theme.colors.textSecondary} style={themedStyles.searchIcon} />
+          <Text style={themedStyles.searchPlaceholder}>Rechercher un cordeur...</Text>
+          <TouchableOpacity style={themedStyles.filterButton}>
+            <SlidersHorizontal size={20} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
-        {/* Toggle Liste / Carte */}
-        <View style={styles.toggleContainer}>
+        <View style={themedStyles.toggleContainer}>
           <TouchableOpacity
-            style={[styles.toggleButton, viewMode === 'list' && styles.toggleActive]}
+            style={[themedStyles.toggleButton, viewMode === 'list' && themedStyles.toggleActive]}
             onPress={() => setViewMode('list')}
           >
-            <Text style={[styles.toggleText, viewMode === 'list' && styles.toggleTextActive]}>Liste</Text>
+            <Text style={[themedStyles.toggleText, viewMode === 'list' && themedStyles.toggleTextActive]}>Liste</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.toggleButton, viewMode === 'map' && styles.toggleActive]}
+            style={[themedStyles.toggleButton, viewMode === 'map' && themedStyles.toggleActive]}
             onPress={() => setViewMode('map')}
           >
-            <Text style={[styles.toggleText, viewMode === 'map' && styles.toggleTextActive]}>🗺️ Carte</Text>
+            <Text style={[themedStyles.toggleText, viewMode === 'map' && themedStyles.toggleTextActive]}>🗺️ Carte</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Content Area */}
       {viewMode === 'list' ? (
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <Text style={styles.sectionTitle}>Cordeurs proches de vous</Text>
+        <ScrollView contentContainerStyle={themedStyles.scrollContent} showsVerticalScrollIndicator={false}>
+          <Text style={themedStyles.sectionTitle}>Cordeurs proches de vous</Text>
 
           {loading ? (
             <ActivityIndicator size="large" color={theme.colors.badmintonPrimary} style={{ marginTop: 40 }} />
           ) : stringers.length === 0 ? (
-            <Text style={styles.emptyText}>Aucun cordeur trouvé.</Text>
+            <Text style={themedStyles.emptyText}>Aucun cordeur trouvé.</Text>
           ) : (
             stringers.map((stringer) => {
               const distance = location
@@ -152,41 +144,41 @@ export const HomeScreen = () => {
               return (
                 <TouchableOpacity 
                   key={stringer.id} 
-                  style={styles.bentoCard} 
+                  style={themedStyles.bentoCard} 
                   onPress={() => navigation.navigate('StringerProfile', { stringerId: stringer.id })}
                 >
-                  <View style={styles.cardHeader}>
-                    <View style={[styles.avatarPlaceholder, { backgroundColor: isBadminton ? theme.colors.badmintonPrimary : theme.colors.tennisPrimary }]}>
+                  <View style={themedStyles.cardHeader}>
+                    <View style={[themedStyles.avatarPlaceholder, { backgroundColor: isBadminton ? theme.colors.badmintonPrimary : theme.colors.tennisPrimary }]}>
                       {stringer.avatarUrl ? (
-                         <Text style={styles.avatarText}>IMG</Text> // placeholder si une vraie image doit être gérée plus tard avec <Image>
+                         <Text style={themedStyles.avatarText}>IMG</Text>
                       ) : (
-                         <Text style={styles.avatarText}>{stringer.type === 'boutique' ? '🏬' : '👤'}</Text>
+                         <Text style={themedStyles.avatarText}>{stringer.type === 'boutique' ? '🏬' : '👤'}</Text>
                       )}
                     </View>
-                    <View style={styles.cardInfo}>
-                      <Text style={styles.stringerName}>{stringer.name}</Text>
-                      <Text style={styles.stringerMeta}>{stringer.type === 'boutique' ? 'Boutique' : 'Indépendant'} • {distance} km</Text>
+                    <View style={themedStyles.cardInfo}>
+                      <Text style={themedStyles.stringerName}>{stringer.name}</Text>
+                      <Text style={themedStyles.stringerMeta}>{stringer.type === 'boutique' ? 'Boutique' : 'Indépendant'} • {distance} km</Text>
                     </View>
-                    <View style={styles.ratingBadge}>
-                      <Text style={styles.ratingText}>⭐ 4.8</Text>
+                    <View style={[themedStyles.ratingBadge, { backgroundColor: isDark ? '#332B00' : '#FFF8E1' }]}>
+                      <Text style={themedStyles.ratingText}>⭐ 4.8</Text>
                     </View>
                   </View>
 
-                  <View style={styles.sportsRow}>
+                  <View style={themedStyles.sportsRow}>
                     {isBadminton && (
-                      <View style={[styles.sportBadge, { backgroundColor: theme.colors.badmintonPrimary + '20' }]}>
-                        <Text style={[styles.sportText, { color: theme.colors.badmintonPrimary }]}>🏸 Badminton</Text>
+                      <View style={[themedStyles.sportBadge, { backgroundColor: theme.colors.badmintonPrimary + '20' }]}>
+                        <Text style={[themedStyles.sportText, { color: theme.colors.badmintonPrimary }]}>🏸 Badminton</Text>
                       </View>
                     )}
                     {isTennis && (
-                      <View style={[styles.sportBadge, { backgroundColor: theme.colors.tennisPrimary + '20' }]}>
-                        <Text style={[styles.sportText, { color: theme.colors.tennisPrimary }]}>🎾 Tennis</Text>
+                      <View style={[themedStyles.sportBadge, { backgroundColor: theme.colors.tennisPrimary + '20' }]}>
+                        <Text style={[themedStyles.sportText, { color: theme.colors.tennisPrimary }]}>🎾 Tennis</Text>
                       </View>
                     )}
                   </View>
 
-                  <View style={styles.priceRow}>
-                    <Text style={styles.priceText}>Cordages à partir de <Text style={styles.priceHighlight}>{stringer.startingPrice} €</Text></Text>
+                  <View style={themedStyles.priceRow}>
+                    <Text style={themedStyles.priceText}>Cordages à partir de <Text style={themedStyles.priceHighlight}>{stringer.startingPrice} €</Text></Text>
                   </View>
                 </TouchableOpacity>
               );
@@ -194,7 +186,7 @@ export const HomeScreen = () => {
           )}
         </ScrollView>
       ) : (
-        <View style={styles.mapWrapper}>
+        <View style={themedStyles.mapWrapper}>
           <Map
             stringers={stringers}
             userLocation={location ? {
@@ -211,7 +203,7 @@ export const HomeScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -276,7 +268,7 @@ const styles = StyleSheet.create({
   },
   toggleContainer: {
     flexDirection: 'row',
-    backgroundColor: '#EAECEF',
+    backgroundColor: theme.isDark ? '#2C3E50' : '#EAECEF',
     borderRadius: 24,
     padding: 4,
     height: 48,
@@ -332,13 +324,12 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: theme.colors.badmintonPrimary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: theme.spacing.sm,
   },
   avatarText: {
-    color: theme.colors.surface,
+    color: '#FFFFFF',
     fontFamily: theme.typography.fonts.bold,
     fontSize: theme.typography.sizes.h3,
   },
@@ -357,7 +348,6 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
   },
   ratingBadge: {
-    backgroundColor: '#FFF8E1',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -401,3 +391,4 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   }
 });
+

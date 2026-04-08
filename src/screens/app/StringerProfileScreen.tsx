@@ -2,14 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { theme } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
-import { ArrowLeft, MapPin, Clock, CreditCard, Star, Calendar } from 'lucide-react-native';
+import { ArrowLeft, MapPin, CreditCard, Star, Calendar } from 'lucide-react-native';
 
 export const StringerProfileScreen = () => {
   const route = useRoute<any>();
   const navigation = useNavigation();
   const { stringerId } = route.params || {};
+  const { theme, isDark } = useTheme();
 
   const [profile, setProfile] = useState<any>(null);
   const [stock, setStock] = useState<any[]>([]);
@@ -24,7 +25,6 @@ export const StringerProfileScreen = () => {
   const fetchStringerDetails = async () => {
     try {
       setLoading(true);
-      // Fetch profile & stringer_profile
       const { data: stringerData, error: stringerError } = await supabase
         .from('stringer_profiles')
         .select(`
@@ -43,7 +43,6 @@ export const StringerProfileScreen = () => {
       if (stringerError) throw stringerError;
       setProfile(stringerData);
 
-      // Fetch stock (mocked empty for now if no data, but we fetch it)
       const { data: stockData, error: stockError } = await supabase
         .from('stock')
         .select(`
@@ -63,10 +62,12 @@ export const StringerProfileScreen = () => {
     }
   };
 
+  const themedStyles = styles(theme);
+
   if (loading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.loadingContainer}>
+      <SafeAreaView style={themedStyles.safeArea}>
+        <View style={themedStyles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.badmintonPrimary} />
         </View>
       </SafeAreaView>
@@ -75,14 +76,14 @@ export const StringerProfileScreen = () => {
 
   if (!profile) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+      <SafeAreaView style={themedStyles.safeArea}>
+        <View style={themedStyles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={themedStyles.backButton}>
             <ArrowLeft color={theme.colors.textPrimary} size={24} />
           </TouchableOpacity>
         </View>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.errorText}>Profil introuvable.</Text>
+        <View style={themedStyles.loadingContainer}>
+          <Text style={themedStyles.errorText}>Profil introuvable.</Text>
         </View>
       </SafeAreaView>
     );
@@ -93,79 +94,79 @@ export const StringerProfileScreen = () => {
   const isTennis = profile.sports?.includes('tennis');
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+    <SafeAreaView style={themedStyles.safeArea}>
+      <View style={themedStyles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={themedStyles.backButton}>
           <ArrowLeft color={theme.colors.textPrimary} size={24} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.profileHeader}>
-          <View style={[styles.avatarPlaceholder, { backgroundColor: isBadminton ? theme.colors.badmintonPrimary : theme.colors.tennisPrimary }]}>
+      <ScrollView contentContainerStyle={themedStyles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={themedStyles.profileHeader}>
+          <View style={[themedStyles.avatarPlaceholder, { backgroundColor: isBadminton ? theme.colors.badmintonPrimary : theme.colors.tennisPrimary }]}>
              {profile.profiles.avatar_url ? (
-               <Text style={styles.avatarText}>IMG</Text>
+               <Text style={themedStyles.avatarText}>IMG</Text>
              ) : (
-               <Text style={styles.avatarText}>{profile.type === 'boutique' ? '🏬' : '👤'}</Text>
+               <Text style={themedStyles.avatarText}>{profile.type === 'boutique' ? '🏬' : '👤'}</Text>
              )}
           </View>
-          <View style={styles.nameContainer}>
-            <Text style={styles.nameTitle}>{name}</Text>
-            <Text style={styles.typeText}>{profile.type === 'boutique' ? 'Boutique Spécialisée' : 'Corder Indépendant'}</Text>
+          <View style={themedStyles.nameContainer}>
+            <Text style={themedStyles.nameTitle}>{name}</Text>
+            <Text style={themedStyles.typeText}>{profile.type === 'boutique' ? 'Boutique Spécialisée' : 'Cordeur Indépendant'}</Text>
           </View>
-          <View style={styles.ratingBadge}>
+          <View style={[themedStyles.ratingBadge, { backgroundColor: isDark ? '#332B00' : '#FFF8E1' }]}>
              <Star color="#F39C12" size={16} fill="#F39C12" />
-             <Text style={styles.ratingText}> 4.8</Text>
+             <Text style={themedStyles.ratingText}> 4.8</Text>
           </View>
         </View>
 
-        <View style={styles.sportsRow}>
+        <View style={themedStyles.sportsRow}>
           {isBadminton && (
-            <View style={[styles.sportBadge, { backgroundColor: theme.colors.badmintonPrimary + '20' }]}>
-              <Text style={[styles.sportText, { color: theme.colors.badmintonPrimary }]}>🏸 Badminton</Text>
+            <View style={[themedStyles.sportBadge, { backgroundColor: theme.colors.badmintonPrimary + '20' }]}>
+              <Text style={[themedStyles.sportText, { color: theme.colors.badmintonPrimary }]}>🏸 Badminton</Text>
             </View>
           )}
           {isTennis && (
-            <View style={[styles.sportBadge, { backgroundColor: theme.colors.tennisPrimary + '20' }]}>
-              <Text style={[styles.sportText, { color: theme.colors.tennisPrimary }]}>🎾 Tennis</Text>
+            <View style={[themedStyles.sportBadge, { backgroundColor: theme.colors.tennisPrimary + '20' }]}>
+              <Text style={[themedStyles.sportText, { color: theme.colors.tennisPrimary }]}>🎾 Tennis</Text>
             </View>
           )}
         </View>
 
-        <View style={styles.bentoSection}>
-          <Text style={styles.sectionTitle}>À propos</Text>
-          <Text style={styles.descriptionText}>
+        <View style={themedStyles.bentoSection}>
+          <Text style={themedStyles.sectionTitle}>À propos</Text>
+          <Text style={themedStyles.descriptionText}>
             {profile.description || "Aucune description fournie par ce cordeur."}
           </Text>
         </View>
 
-        <View style={styles.bentoSection}>
-          <Text style={styles.sectionTitle}>Informations Pratiques</Text>
-          <View style={styles.infoRow}>
-            <MapPin size={20} color={theme.colors.textSecondary} style={styles.infoIcon} />
-            <Text style={styles.infoText}>{profile.address || "Adresse non renseignée"}</Text>
+        <View style={themedStyles.bentoSection}>
+          <Text style={themedStyles.sectionTitle}>Informations Pratiques</Text>
+          <View style={themedStyles.infoRow}>
+            <MapPin size={20} color={theme.colors.textSecondary} style={themedStyles.infoIcon} />
+            <Text style={themedStyles.infoText}>{profile.address || "Adresse non renseignée"}</Text>
           </View>
-          <View style={styles.infoRow}>
-            <CreditCard size={20} color={theme.colors.textSecondary} style={styles.infoIcon} />
-            <Text style={styles.infoText}>Moyens de paiement : {profile.payment_methods?.join(', ') || 'Espèces'}</Text>
+          <View style={themedStyles.infoRow}>
+            <CreditCard size={20} color={theme.colors.textSecondary} style={themedStyles.infoIcon} />
+            <Text style={themedStyles.infoText}>Moyens de paiement : {profile.payment_methods?.join(', ') || 'Espèces'}</Text>
           </View>
         </View>
 
-        <View style={styles.bentoSection}>
-          <Text style={styles.sectionTitle}>Cordages Proposés ({stock.length})</Text>
+        <View style={themedStyles.bentoSection}>
+          <Text style={themedStyles.sectionTitle}>Cordages Proposés ({stock.length})</Text>
           {stock.length === 0 ? (
-            <Text style={styles.emptyText}>Ce cordeur n'a pas encore renseigné son stock.</Text>
+            <Text style={themedStyles.emptyText}>Ce cordeur n'a pas encore renseigné son stock.</Text>
           ) : (
             stock.map((item, index) => (
-              <View key={index} style={styles.stockItem}>
-                <View style={styles.stockInfoContainer}>
-                   <Text style={styles.stockName}>{item.reference_strings?.name || item.custom_name}</Text>
-                   <Text style={styles.stockBrand}>{item.reference_strings?.brand}</Text>
-                   <Text style={styles.stockDetails}>{item.reference_strings?.play_profile}</Text>
+              <View key={index} style={themedStyles.stockItem}>
+                <View style={themedStyles.stockInfoContainer}>
+                   <Text style={themedStyles.stockName}>{item.reference_strings?.name || item.custom_name}</Text>
+                   <Text style={themedStyles.stockBrand}>{item.reference_strings?.brand}</Text>
+                   <Text style={themedStyles.stockDetails}>{item.reference_strings?.play_profile}</Text>
                 </View>
-                <View style={styles.stockPriceContainer}>
-                   <Text style={styles.stockPrice}>{item.price} €</Text>
-                   <Text style={styles.stockLabor}>{item.includes_labor ? 'Pose incluse' : 'Sans pose'}</Text>
+                <View style={themedStyles.stockPriceContainer}>
+                   <Text style={themedStyles.stockPrice}>{item.price} €</Text>
+                   <Text style={themedStyles.stockLabor}>{item.includes_labor ? 'Pose incluse' : 'Sans pose'}</Text>
                 </View>
               </View>
             ))
@@ -173,12 +174,11 @@ export const StringerProfileScreen = () => {
         </View>
       </ScrollView>
 
-      {/* Bouton Prendre RDV flottant avec effet glassmorphism */}
-      <View style={styles.floatingActionContainer}>
-        <TouchableOpacity style={styles.bookButtonWrapper} onPress={() => {/* Navigation vers l'écran de réservation */}}>
-          <BlurView intensity={80} tint="dark" style={styles.bookButtonGlass}>
-            <Calendar color={theme.colors.surface} size={20} style={{ marginRight: 8 }} />
-            <Text style={styles.bookButtonText}>Prendre un RDV</Text>
+      <View style={themedStyles.floatingActionContainer}>
+        <TouchableOpacity style={themedStyles.bookButtonWrapper} onPress={() => {}}>
+          <BlurView intensity={80} tint={isDark ? 'light' : 'dark'} style={themedStyles.bookButtonGlass}>
+            <Calendar color={isDark ? theme.colors.textPrimary : theme.colors.surface} size={20} style={{ marginRight: 8 }} />
+            <Text style={[themedStyles.bookButtonText, { color: isDark ? theme.colors.textPrimary : theme.colors.surface }]}>Prendre un RDV</Text>
           </BlurView>
         </TouchableOpacity>
       </View>
@@ -186,7 +186,7 @@ export const StringerProfileScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: theme.spacing.md,
-    paddingBottom: 100, // Espace pour le bouton flottant
+    paddingBottom: 100,
   },
   profileHeader: {
     flexDirection: 'row',
@@ -232,13 +232,12 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: theme.colors.badmintonPrimary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: theme.spacing.md,
   },
   avatarText: {
-    color: theme.colors.surface,
+    color: '#FFFFFF',
     fontFamily: theme.typography.fonts.bold,
     fontSize: theme.typography.sizes.h2,
   },
@@ -259,7 +258,6 @@ const styles = StyleSheet.create({
   ratingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF8E1',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -385,6 +383,6 @@ const styles = StyleSheet.create({
   bookButtonText: {
     fontFamily: theme.typography.fonts.bold,
     fontSize: theme.typography.sizes.body,
-    color: theme.colors.surface,
   }
 });
+

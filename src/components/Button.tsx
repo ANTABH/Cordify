@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
-import { theme } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 
 interface ButtonProps {
   title: string;
@@ -21,6 +21,8 @@ export const Button = ({
   style,
   textStyle
 }: ButtonProps) => {
+  const { theme } = useTheme();
+
   const getBackgroundColor = () => {
     if (variant === 'outline') return 'transparent';
     if (variant === 'secondary') return theme.colors.background;
@@ -36,13 +38,13 @@ export const Button = ({
       return theme.colors.textPrimary;
     }
     if (variant === 'secondary') return theme.colors.textPrimary;
-    return theme.colors.surface;
+    return '#FFFFFF'; // Explicitly white for primary buttons
   };
 
   return (
     <TouchableOpacity 
       style={[
-        styles.button, 
+        styles(theme).button, 
         { backgroundColor: getBackgroundColor() },
         variant === 'outline' && { borderWidth: 2, borderColor: getTextColor() },
         style
@@ -54,13 +56,13 @@ export const Button = ({
       {loading ? (
         <ActivityIndicator color={getTextColor()} />
       ) : (
-        <Text style={[styles.text, { color: getTextColor() }, textStyle]}>{title}</Text>
+        <Text style={[styles(theme).text, { color: getTextColor() }, textStyle]}>{title}</Text>
       )}
     </TouchableOpacity>
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
   button: {
     height: 56,
     borderRadius: theme.borderRadius.button,
@@ -75,3 +77,4 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sizes.body,
   }
 });
+

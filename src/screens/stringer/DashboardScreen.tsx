@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
-import { theme } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Package, CalendarDays, Settings, LogOut } from 'lucide-react-native';
+import { Package, CalendarDays, Settings } from 'lucide-react-native';
 
 export const DashboardScreen = () => {
   const { session } = useAuth();
@@ -13,6 +13,8 @@ export const DashboardScreen = () => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [stockCount, setStockCount] = useState(0);
+  const { theme } = useTheme();
+
 
   useEffect(() => {
     fetchCordeurData();
@@ -52,10 +54,12 @@ export const DashboardScreen = () => {
     }
   };
 
+  const themedStyles = styles(theme);
+
   if (loading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.loadingContainer}>
+      <SafeAreaView style={themedStyles.safeArea}>
+        <View style={themedStyles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.badmintonPrimary} />
         </View>
       </SafeAreaView>
@@ -65,12 +69,12 @@ export const DashboardScreen = () => {
   const name = profile?.profiles?.first_name ? `Bonjour, ${profile.profiles.first_name} 👋` : 'Bonjour 👋';
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <Text style={styles.greeting}>{name}</Text>
+    <SafeAreaView style={themedStyles.safeArea}>
+      <View style={themedStyles.header}>
+        <View style={themedStyles.headerTop}>
+          <Text style={themedStyles.greeting}>{name}</Text>
           <TouchableOpacity
-            style={styles.iconButton}
+            style={themedStyles.iconButton}
             onPress={() => navigation.navigate('Settings')}
           >
             <Settings size={24} color={theme.colors.textPrimary} />
@@ -78,45 +82,45 @@ export const DashboardScreen = () => {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={themedStyles.scrollContent}>
         {/* KPI Cards */}
-        <View style={styles.kpiContainer}>
-          <View style={styles.kpiCard}>
-            <Text style={styles.kpiValue}>0</Text>
-            <Text style={styles.kpiLabel}>Commandes en cours</Text>
+        <View style={themedStyles.kpiContainer}>
+          <View style={themedStyles.kpiCard}>
+            <Text style={themedStyles.kpiValue}>0</Text>
+            <Text style={themedStyles.kpiLabel}>Commandes en cours</Text>
           </View>
-          <View style={styles.kpiCard}>
-            <Text style={styles.kpiValue}>0</Text>
-            <Text style={styles.kpiLabel}>RDV aujourd'hui</Text>
+          <View style={themedStyles.kpiCard}>
+            <Text style={themedStyles.kpiValue}>0</Text>
+            <Text style={themedStyles.kpiLabel}>RDV aujourd'hui</Text>
           </View>
         </View>
 
         {/* Actions Bento */}
-        <Text style={styles.sectionTitle}>Gestion de l'activité</Text>
+        <Text style={themedStyles.sectionTitle}>Gestion de l'activité</Text>
 
         <TouchableOpacity 
-          style={styles.actionCard} 
+          style={themedStyles.actionCard} 
           onPress={() => navigation.navigate('Stock')}
         >
-          <View style={[styles.actionIconContainer, { backgroundColor: theme.colors.tennisPrimary + '20' }]}>
+          <View style={[themedStyles.actionIconContainer, { backgroundColor: theme.colors.tennisPrimary + '20' }]}>
             <Package color={theme.colors.tennisPrimary} size={28} />
           </View>
-          <View style={styles.actionInfo}>
-            <Text style={styles.actionCardTitle}>Mon Stock de Cordages</Text>
-            <Text style={styles.actionCardSubtitle}>{stockCount} cordages enregistrés</Text>
+          <View style={themedStyles.actionInfo}>
+            <Text style={themedStyles.actionCardTitle}>Mon Stock de Cordages</Text>
+            <Text style={themedStyles.actionCardSubtitle}>{stockCount} cordages enregistrés</Text>
           </View>
         </TouchableOpacity>
 
         <TouchableOpacity 
-          style={styles.actionCard} 
+          style={themedStyles.actionCard} 
           onPress={() => { /* TODO: Disponibilités */ }}
         >
-          <View style={[styles.actionIconContainer, { backgroundColor: theme.colors.badmintonPrimary + '20' }]}>
+          <View style={[themedStyles.actionIconContainer, { backgroundColor: theme.colors.badmintonPrimary + '20' }]}>
             <CalendarDays color={theme.colors.badmintonPrimary} size={28} />
           </View>
-          <View style={styles.actionInfo}>
-            <Text style={styles.actionCardTitle}>Mes Disponibilités</Text>
-            <Text style={styles.actionCardSubtitle}>Gérer vos horaires et absences</Text>
+          <View style={themedStyles.actionInfo}>
+            <Text style={themedStyles.actionCardTitle}>Mes Disponibilités</Text>
+            <Text style={themedStyles.actionCardSubtitle}>Gérer vos horaires et absences</Text>
           </View>
         </TouchableOpacity>
 
@@ -125,7 +129,7 @@ export const DashboardScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: theme.colors.background,

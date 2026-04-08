@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Alert, ScrollView, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Alert, ScrollView, TouchableOpacity } from 'react-native';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
-import { theme } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { supabase } from '../../lib/supabase';
@@ -12,6 +12,7 @@ type Role = 'client' | 'stringer' | null;
 
 export const RegisterScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { theme } = useTheme();
 
   const [selectedRole, setSelectedRole] = useState<Role>(null);
   const [email, setEmail] = useState('');
@@ -49,7 +50,6 @@ export const RegisterScreen = () => {
       return;
     }
 
-    // Création automatique du profil dans la base de données
     if (data?.user) {
       const userId = data.user.id;
 
@@ -73,67 +73,66 @@ export const RegisterScreen = () => {
     }
 
     setLoading(false);
-    // Si succès, l'AuthContext détecte la session et le RootNavigator redirige automatiquement
   };
 
-  // Étape 1 : Choix du rôle
+  const themedStyles = styles(theme);
+
   if (!selectedRole) {
     return (
-      <View style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Créer un compte</Text>
-            <Text style={styles.subtitle}>
+      <View style={themedStyles.container}>
+        <ScrollView contentContainerStyle={themedStyles.scrollContent}>
+          <View style={themedStyles.header}>
+            <Text style={themedStyles.title}>Créer un compte</Text>
+            <Text style={themedStyles.subtitle}>
               Comment souhaitez-vous{'\n'}utiliser Cordify ?
             </Text>
           </View>
 
-          <View style={styles.roleCards}>
+          <View style={themedStyles.roleCards}>
             <TouchableOpacity
-              style={styles.roleCard}
+              style={themedStyles.roleCard}
               onPress={() => setSelectedRole('client')}
               activeOpacity={0.8}
             >
-              <View style={[styles.roleIconContainer, { backgroundColor: `${theme.colors.badmintonPrimary}18` }]}>
+              <View style={[themedStyles.roleIconContainer, { backgroundColor: `${theme.colors.badmintonPrimary}18` }]}>
                 <User color={theme.colors.badmintonPrimary} size={32} strokeWidth={2} />
               </View>
-              <Text style={styles.roleTitle}>Joueur</Text>
-              <Text style={styles.roleDescription}>
+              <Text style={themedStyles.roleTitle}>Joueur</Text>
+              <Text style={themedStyles.roleDescription}>
                 Trouvez un cordeur près de chez vous et faites corder vos raquettes facilement.
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.roleCard}
+              style={themedStyles.roleCard}
               onPress={() => setSelectedRole('stringer')}
               activeOpacity={0.8}
             >
-              <View style={[styles.roleIconContainer, { backgroundColor: `${theme.colors.tennisPrimary}18` }]}>
+              <View style={[themedStyles.roleIconContainer, { backgroundColor: `${theme.colors.tennisPrimary}18` }]}>
                 <Wrench color={theme.colors.tennisPrimary} size={32} strokeWidth={2} />
               </View>
-              <Text style={styles.roleTitle}>Cordeur</Text>
-              <Text style={styles.roleDescription}>
+              <Text style={themedStyles.roleTitle}>Cordeur</Text>
+              <Text style={themedStyles.roleDescription}>
                 Gérez vos stocks, vos clients et développez votre activité de cordage.
               </Text>
             </TouchableOpacity>
           </View>
 
-          {/* <TouchableOpacity
-            style={styles.backLink}
+          <TouchableOpacity
+            style={themedStyles.backLink}
             onPress={() => navigation.goBack()}
             activeOpacity={0.7}
           >
-            <Text style={styles.backLinkText}>
+            <Text style={themedStyles.backLinkText}>
               Déjà un compte ?{' '}
-              <Text style={styles.backLinkBold}>Se connecter</Text>
+              <Text style={themedStyles.backLinkBold}>Se connecter</Text>
             </Text>
-          </TouchableOpacity> */}
+          </TouchableOpacity>
         </ScrollView>
       </View>
     );
   }
 
-  // Étape 2 : Formulaire d'inscription
   const isClient = selectedRole === 'client';
   const roleName = isClient ? 'Joueur' : 'Cordeur';
   const sportTheme = isClient ? 'badminton' : 'tennis';
@@ -141,32 +140,32 @@ export const RegisterScreen = () => {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={themedStyles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={themedStyles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.header}>
+        <View style={themedStyles.header}>
           <TouchableOpacity
-            style={styles.backButton}
+            style={themedStyles.backButton}
             onPress={() => setSelectedRole(null)}
             activeOpacity={0.7}
           >
             <ArrowLeft color={theme.colors.textSecondary} size={20} />
-            <Text style={styles.backButtonText}>Retour</Text>
+            <Text style={themedStyles.backButtonText}>Retour</Text>
           </TouchableOpacity>
 
-          <Text style={styles.title}>Inscription</Text>
-          <View style={[styles.roleBadge, { backgroundColor: `${accentColor}18` }]}>
-            <Text style={[styles.roleBadgeText, { color: accentColor }]}>
+          <Text style={themedStyles.title}>Inscription</Text>
+          <View style={[themedStyles.roleBadge, { backgroundColor: `${accentColor}18` }]}>
+            <Text style={[themedStyles.roleBadgeText, { color: accentColor }]}>
               {roleName}
             </Text>
           </View>
         </View>
 
-        <View style={styles.formCard}>
+        <View style={themedStyles.formCard}>
           <Input
             label="Adresse Email"
             placeholder="jean.dupont@email.com"
@@ -205,7 +204,7 @@ export const RegisterScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -304,3 +303,4 @@ const styles = StyleSheet.create({
     color: theme.colors.badmintonPrimary,
   },
 });
+

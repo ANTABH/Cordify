@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet, TextInputProps, Animated } from 'react-native';
-import { theme } from '../theme';
+import { useTheme } from '../context/ThemeContext';
 import { LucideIcon } from 'lucide-react-native';
 
 interface InputProps extends TextInputProps {
@@ -11,24 +11,27 @@ interface InputProps extends TextInputProps {
 
 export const Input = ({ label, error, icon: Icon, style, ...props }: InputProps) => {
   const [isFocused, setIsFocused] = useState(false);
+  const { theme } = useTheme();
+
+  const themedStyles = styles(theme);
 
   return (
-    <View style={[styles.container, style]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+    <View style={[themedStyles.container, style]}>
+      {label && <Text style={themedStyles.label}>{label}</Text>}
       <View style={[
-        styles.inputContainer,
-        isFocused && styles.inputFocused,
-        error && styles.inputError
+        themedStyles.inputContainer,
+        isFocused && themedStyles.inputFocused,
+        error && themedStyles.inputError
       ]}>
         {Icon && (
           <Icon 
             size={20} 
             color={isFocused ? theme.colors.badmintonPrimary : theme.colors.textSecondary} 
-            style={styles.icon} 
+            style={themedStyles.icon} 
           />
         )}
         <TextInput
-          style={styles.input}
+          style={themedStyles.input}
           placeholderTextColor={theme.colors.textSecondary}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -36,12 +39,12 @@ export const Input = ({ label, error, icon: Icon, style, ...props }: InputProps)
           {...props}
         />
       </View>
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {error && <Text style={themedStyles.errorText}>{error}</Text>}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
   container: {
     marginBottom: theme.spacing.md,
   },
@@ -54,10 +57,10 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   inputContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.input,
     borderWidth: 1.5,
-    borderColor: '#E8EDF2',
+    borderColor: theme.colors.border,
     height: 58,
     paddingHorizontal: theme.spacing.md,
     flexDirection: 'row',
@@ -66,7 +69,6 @@ const styles = StyleSheet.create({
   },
   inputFocused: {
     borderColor: theme.colors.badmintonPrimary,
-    backgroundColor: '#FFFFFF',
     shadowOpacity: 0.1,
   },
   inputError: {
@@ -89,3 +91,4 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   }
 });
+
