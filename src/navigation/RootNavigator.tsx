@@ -1,19 +1,18 @@
 import React from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { OnboardingScreen } from '../screens/auth/OnboardingScreen';
 import { RegisterScreen } from '../screens/auth/RegisterScreen';
 import { LoginScreen } from '../screens/auth/LoginScreen';
-import { HomeScreen } from '../screens/app/HomeScreen';
 import { SettingsScreen } from '../screens/app/SettingsScreen';
 import { StringerProfileScreen } from '../screens/app/StringerProfileScreen';
+import { BookingScreen } from '../screens/app/BookingScreen';
 import { DashboardScreen } from '../screens/stringer/DashboardScreen';
 import { StockScreen } from '../screens/stringer/StockScreen';
 import { OrdersScreen } from '../screens/stringer/OrdersScreen';
-import { RacketsScreen } from '../screens/app/RacketsScreen';
-import { BookingScreen } from '../screens/app/BookingScreen';
+import { PlayerTabNavigator } from './PlayerTabNavigator';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { ActivityIndicator, View } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
@@ -103,11 +102,11 @@ export const RootNavigator = () => {
           />
         </>
       ) : (
-        // Client Stack
+        // Client Stack (Player)
         <>
           <Stack.Screen
-            name="Home"
-            component={HomeScreen}
+            name="MainTabs"
+            component={PlayerTabNavigator}
             options={{ headerShown: false }}
           />
           <Stack.Screen
@@ -116,30 +115,12 @@ export const RootNavigator = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="Rackets"
-            component={RacketsScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
             name="Booking"
             component={BookingScreen}
             options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Settings"
-            component={SettingsScreen}
-            options={{
-              title: 'Paramètres',
-              headerStyle: { backgroundColor: theme.colors.background },
-              headerTintColor: theme.colors.textPrimary,
-              headerTitleStyle: {
-                color: theme.colors.textPrimary
-              }
-            }}
           />
         </>
       )}
     </Stack.Navigator>
   );
 };
-

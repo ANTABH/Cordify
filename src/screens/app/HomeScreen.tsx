@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { Search, SlidersHorizontal, Settings, LogOut, MapPin } from 'lucide-react-native';
@@ -89,26 +90,10 @@ export const HomeScreen = () => {
   };
 
   return (
-    <SafeAreaView style={themedStyles.safeArea}>
+    <SafeAreaView style={themedStyles.safeArea} edges={['top', 'left', 'right']}>
       <View style={themedStyles.header}>
         <View style={themedStyles.headerTop}>
           <Text style={themedStyles.greeting}>Bonjour 👋</Text>
-          <View style={themedStyles.headerActions}>
-            {userRole === 'client' && (
-              <TouchableOpacity
-                style={[themedStyles.iconButton, { backgroundColor: theme.colors.badmintonPrimary }]}
-                onPress={() => navigation.navigate('Rackets')}
-              >
-                <RacketIcon size={22} color="#FFFFFF" />
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={themedStyles.iconButton}
-              onPress={() => navigation.navigate('Settings')}
-            >
-              <Settings size={24} color={theme.colors.textPrimary} />
-            </TouchableOpacity>
-          </View>
         </View>
 
         <View style={themedStyles.searchContainer}>
@@ -305,7 +290,7 @@ const styles = (theme: any) => StyleSheet.create({
   },
   scrollContent: {
     padding: theme.spacing.md,
-    paddingBottom: 100,
+    paddingBottom: 140,
   },
   sectionTitle: {
     fontFamily: theme.typography.fonts.semiBold,
@@ -399,7 +384,7 @@ const styles = (theme: any) => StyleSheet.create({
   mapWrapper: {
     flex: 1,
     padding: theme.spacing.md,
-    paddingBottom: 20,
+    marginBottom: 88,
   }
 });
 

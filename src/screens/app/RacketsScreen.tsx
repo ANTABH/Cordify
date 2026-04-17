@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal, TextInput, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Modal, TextInput, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -145,11 +146,8 @@ export const RacketsScreen = () => {
   }
 
   return (
-    <SafeAreaView style={s.safeArea}>
+    <SafeAreaView style={s.safeArea} edges={['top', 'left', 'right']}>
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backButton}>
-          <ArrowLeft color={theme.colors.textPrimary} size={24} />
-        </TouchableOpacity>
         <View>
           <Text style={s.headerTitle}>Mes Raquettes</Text>
           <Text style={s.headerSubtitle}>{rackets.length} raquette{rackets.length > 1 ? 's' : ''} enregistrée{rackets.length > 1 ? 's' : ''}</Text>
@@ -291,7 +289,7 @@ const styles = (theme: any) => StyleSheet.create({
   },
   scrollContent: {
     padding: theme.spacing.md,
-    paddingBottom: 100,
+    paddingBottom: 200,
   },
   emptyContainer: {
     paddingVertical: 60,
@@ -363,7 +361,7 @@ const styles = (theme: any) => StyleSheet.create({
   },
   floatingActionContainer: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 110,
     left: theme.spacing.md,
     right: theme.spacing.md,
   },

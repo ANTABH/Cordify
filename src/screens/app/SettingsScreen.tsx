@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { LogOut, ChevronRight, User, Bell, Shield, CircleHelp, Palette, Moon, Sun, Monitor, Smartphone, Dumbbell } from 'lucide-react-native';
@@ -53,7 +54,7 @@ export const SettingsScreen = () => {
   const themedStyles = styles(theme);
 
   return (
-    <SafeAreaView style={themedStyles.safeArea}>
+    <SafeAreaView style={themedStyles.safeArea} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={themedStyles.scrollContent}>
 
         <View style={themedStyles.profileSection}>
@@ -150,7 +151,7 @@ const styles = (theme: any) => StyleSheet.create({
   },
   scrollContent: {
     padding: theme.spacing.md,
-    paddingBottom: 40,
+    paddingBottom: 120,
   },
   profileSection: {
     alignItems: 'center',

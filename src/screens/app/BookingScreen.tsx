@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator, Alert, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, TextInput, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
@@ -120,7 +121,7 @@ export const BookingScreen = () => {
       Alert.alert(
         '🎉 Réservation envoyée !',
         'Votre demande a été envoyée au cordeur. Vous recevrez une notification dès qu\'elle sera acceptée.',
-        [{ text: 'Super !', onPress: () => navigation.navigate('Home') }]
+        [{ text: 'Super !', onPress: () => navigation.navigate('MainTabs') }]
       );
     } catch (err) {
       console.error(err);
