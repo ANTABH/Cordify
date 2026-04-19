@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { Search, SlidersHorizontal, Settings, LogOut, MapPin } from 'lucide-react-native';
@@ -20,8 +20,13 @@ export const HomeScreen = () => {
 
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { theme, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const { userRole } = useAuth();
   const themedStyles = styles(theme);
+
+  // Calcul du décalage dynamique pour la TabBarJoueur
+  // Hauteur TabBar (85) + Bottom Offset (8) + Sécurité Appareil (insets.bottom)
+  const tabBarBottomOffset = 85 + 8 + insets.bottom;
 
   useEffect(() => {
     (async () => {
@@ -121,7 +126,10 @@ export const HomeScreen = () => {
       </View>
 
       {viewMode === 'list' ? (
-        <ScrollView contentContainerStyle={themedStyles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={[themedStyles.scrollContent, { paddingBottom: tabBarBottomOffset + 24 }]}
+          showsVerticalScrollIndicator={false}
+        >
           <Text style={themedStyles.sectionTitle}>Cordeurs proches de vous</Text>
 
           {loading ? (
@@ -138,17 +146,17 @@ export const HomeScreen = () => {
               const isTennis = stringer.sports.includes('tennis');
 
               return (
-                <TouchableOpacity 
-                  key={stringer.id} 
-                  style={themedStyles.bentoCard} 
+                <TouchableOpacity
+                  key={stringer.id}
+                  style={themedStyles.bentoCard}
                   onPress={() => navigation.navigate('StringerProfile', { stringerId: stringer.id })}
                 >
                   <View style={themedStyles.cardHeader}>
                     <View style={[themedStyles.avatarPlaceholder, { backgroundColor: isBadminton ? theme.colors.badmintonPrimary : theme.colors.tennisPrimary }]}>
                       {stringer.avatarUrl ? (
-                         <Text style={themedStyles.avatarText}>IMG</Text>
+                        <Text style={themedStyles.avatarText}>IMG</Text>
                       ) : (
-                         <Text style={themedStyles.avatarText}>{stringer.type === 'boutique' ? '🏬' : '👤'}</Text>
+                        <Text style={themedStyles.avatarText}>{stringer.type === 'boutique' ? '🏬' : '👤'}</Text>
                       )}
                     </View>
                     <View style={themedStyles.cardInfo}>
@@ -182,7 +190,7 @@ export const HomeScreen = () => {
           )}
         </ScrollView>
       ) : (
-        <View style={themedStyles.mapWrapper}>
+        <View style={[themedStyles.mapWrapper, { marginBottom: tabBarBottomOffset }]}>
           <Map
             stringers={stringers}
             userLocation={location ? {
@@ -290,7 +298,6 @@ const styles = (theme: any) => StyleSheet.create({
   },
   scrollContent: {
     padding: theme.spacing.md,
-    paddingBottom: 140,
   },
   sectionTitle: {
     fontFamily: theme.typography.fonts.semiBold,
@@ -384,7 +391,6 @@ const styles = (theme: any) => StyleSheet.create({
   mapWrapper: {
     flex: 1,
     padding: theme.spacing.md,
-    marginBottom: 88,
   }
 });
 

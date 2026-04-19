@@ -209,8 +209,6 @@ const styles = (theme: any) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
   },
   settingItemLeft: {
     flexDirection: 'row',

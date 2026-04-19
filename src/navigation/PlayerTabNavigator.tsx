@@ -29,7 +29,7 @@ export const PlayerTabNavigator = () => {
       <Tab.Screen 
         name="Settings" 
         component={SettingsScreen} 
-        options={{ title: 'Paramètres' }}
+        options={{ title: 'Profil' }}
       />
     </Tab.Navigator>
   );

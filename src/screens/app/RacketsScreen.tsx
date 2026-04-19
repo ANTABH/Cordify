@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Modal, TextInput, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ArrowLeft, Plus, Trash2, Pencil } from 'lucide-react-native';
 import { RacketIcon } from '../../components/RacketIcon';
+import { AddRacketLogo } from '../../components/AddRacketLogo';
 
 export const RacketsScreen = () => {
   const { session } = useAuth();
@@ -15,6 +16,10 @@ export const RacketsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [rackets, setRackets] = useState<any[]>([]);
   const { theme, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+
+  // Calcul du décalage dynamique pour la TabBarJoueur
+  const tabBarBottomOffset = 85 + 8 + insets.bottom;
 
   // Modal state
   const [modalVisible, setModalVisible] = useState(false);
@@ -152,9 +157,17 @@ export const RacketsScreen = () => {
           <Text style={s.headerTitle}>Mes Raquettes</Text>
           <Text style={s.headerSubtitle}>{rackets.length} raquette{rackets.length > 1 ? 's' : ''} enregistrée{rackets.length > 1 ? 's' : ''}</Text>
         </View>
+        <TouchableOpacity style={s.headerAddButton} onPress={openAddModal} activeOpacity={0.7}>
+          <Text style={s.headerAddButtonText}>Ajouter</Text>
+          <AddRacketLogo 
+            size={28} 
+            color={isDark ? '#FFFFFF' : '#000000'} 
+            plusColor={theme.colors.badmintonPrimary} 
+          />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={s.scrollContent}>
+      <ScrollView contentContainerStyle={[s.scrollContent, { paddingBottom: tabBarBottomOffset + 24 }]}>
         {rackets.length === 0 ? (
           <View style={s.emptyContainer}>
             <View style={s.emptyIconCircle}>
@@ -162,6 +175,14 @@ export const RacketsScreen = () => {
             </View>
             <Text style={s.emptyText}>Aucune raquette enregistrée.</Text>
             <Text style={s.emptySubText}>Ajoutez vos raquettes pour accélérer vos prochaines prises de rendez-vous.</Text>
+            <TouchableOpacity style={s.emptyAddButton} onPress={openAddModal}>
+              <AddRacketLogo 
+                size={24} 
+                color="#FFFFFF" 
+                plusColor={theme.colors.badmintonPrimary} 
+              />
+              <Text style={s.emptyAddButtonText}>Ajouter ma première raquette</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           rackets.map((item) => (
@@ -187,12 +208,7 @@ export const RacketsScreen = () => {
         )}
       </ScrollView>
 
-      <View style={s.floatingActionContainer}>
-        <TouchableOpacity style={s.addButton} onPress={openAddModal}>
-          <Plus color="#FFFFFF" size={24} />
-          <Text style={s.addButtonText}>Ajouter une raquette</Text>
-        </TouchableOpacity>
-      </View>
+
 
       <Modal visible={modalVisible} animationType="slide" transparent>
         <KeyboardAvoidingView
@@ -265,6 +281,25 @@ const styles = (theme: any) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: theme.colors.background,
+    justifyContent: 'space-between',
+  },
+  headerAddButton: {
+    paddingLeft: 16,
+    paddingRight: 8,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: theme.colors.badmintonPrimary + '20',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderColor: theme.colors.badmintonPrimary + '40',
+  },
+  headerAddButtonText: {
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: 14,
+    color: theme.isDark ? '#FFFFFF' : '#000000',
+    marginRight: 2,
   },
   backButton: {
     width: 44,
@@ -289,7 +324,6 @@ const styles = (theme: any) => StyleSheet.create({
   },
   scrollContent: {
     padding: theme.spacing.md,
-    paddingBottom: 200,
   },
   emptyContainer: {
     paddingVertical: 60,
@@ -318,6 +352,22 @@ const styles = (theme: any) => StyleSheet.create({
     color: theme.colors.textSecondary,
     textAlign: 'center',
     paddingHorizontal: 40,
+    marginBottom: theme.spacing.xl,
+  },
+  emptyAddButton: {
+    backgroundColor: theme.colors.badmintonPrimary,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    ...theme.shadows.soft,
+  },
+  emptyAddButtonText: {
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.sizes.body,
+    color: '#FFFFFF',
   },
   racketCard: {
     backgroundColor: theme.colors.surface,
@@ -359,27 +409,7 @@ const styles = (theme: any) => StyleSheet.create({
     backgroundColor: theme.colors.alert + '15',
     borderRadius: 14,
   },
-  floatingActionContainer: {
-    position: 'absolute',
-    bottom: 110,
-    left: theme.spacing.md,
-    right: theme.spacing.md,
-  },
-  addButton: {
-    backgroundColor: theme.colors.badmintonPrimary,
-    height: 56,
-    borderRadius: 28,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...theme.shadows.elevated,
-  },
-  addButtonText: {
-    fontFamily: theme.typography.fonts.bold,
-    fontSize: theme.typography.sizes.body,
-    color: '#FFFFFF',
-    marginLeft: 8,
-  },
+
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
