@@ -10,6 +10,8 @@ import { BookingScreen } from '../screens/app/BookingScreen';
 import { DashboardScreen } from '../screens/stringer/DashboardScreen';
 import { StockScreen } from '../screens/stringer/StockScreen';
 import { OrdersScreen } from '../screens/stringer/OrdersScreen';
+import { AvailabilitiesScreen } from '../screens/stringer/AvailabilitiesScreen';
+import { PublicProfileEditScreen } from '../screens/stringer/PublicProfileEditScreen';
 import { PlayerTabNavigator } from './PlayerTabNavigator';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -89,6 +91,16 @@ export const RootNavigator = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
+            name="Availabilities"
+            component={AvailabilitiesScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="PublicProfileEdit"
+            component={PublicProfileEditScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
             name="Settings"
             component={SettingsScreen}
             options={{
@@ -118,6 +130,18 @@ export const RootNavigator = () => {
             name="Booking"
             component={BookingScreen}
             options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{
+              title: 'Profil',
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.textPrimary,
+              headerTitleStyle: {
+                color: theme.colors.textPrimary
+              }
+            }}
           />
         </>
       )}

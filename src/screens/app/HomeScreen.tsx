@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, Activit
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
-import { Search, SlidersHorizontal, Settings, LogOut, MapPin } from 'lucide-react-native';
+import { Search, SlidersHorizontal, Settings, LogOut, MapPin, User } from 'lucide-react-native';
 import * as Location from 'expo-location';
 import { Map, StringerMapPin } from '../../components/Map';
 import { useNavigation } from '@react-navigation/native';
@@ -21,7 +21,7 @@ export const HomeScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const { userRole } = useAuth();
+  const { userRole, session } = useAuth();
   const themedStyles = styles(theme);
 
   // Calcul du décalage dynamique pour la TabBarJoueur
@@ -99,6 +99,14 @@ export const HomeScreen = () => {
       <View style={themedStyles.header}>
         <View style={themedStyles.headerTop}>
           <Text style={themedStyles.greeting}>Bonjour 👋</Text>
+          <TouchableOpacity
+            style={themedStyles.profileBubble}
+            onPress={() => navigation.navigate('Settings')}
+          >
+            <Text style={themedStyles.profileInitial}>
+              {session?.user?.email?.substring(0, 2).toUpperCase() || 'U'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View style={themedStyles.searchContainer}>
@@ -229,6 +237,20 @@ const styles = (theme: any) => StyleSheet.create({
     fontFamily: theme.typography.fonts.bold,
     fontSize: theme.typography.sizes.h1,
     color: theme.colors.textPrimary,
+  },
+  profileBubble: {
+    width: 44,
+    height: 44,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...theme.shadows.soft,
+  },
+  profileInitial: {
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: 16,
+    color: theme.colors.badmintonPrimary,
   },
   headerActions: {
     flexDirection: 'row',

@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Package, CalendarDays, Settings, ClipboardList, Dumbbell } from 'lucide-react-native';
+import { Package, CalendarDays, Settings, ClipboardList, Dumbbell, User } from 'lucide-react-native';
 
 export const DashboardScreen = () => {
   const { session } = useAuth();
@@ -27,7 +27,7 @@ export const DashboardScreen = () => {
     try {
       setLoading(true);
       const userId = session?.user?.id;
-      
+
       if (!userId) return;
 
       const { data: stringerData, error: stringerError } = await supabase
@@ -63,7 +63,7 @@ export const DashboardScreen = () => {
       const today = new Date();
       const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
       const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
-      
+
       const { count: tCount, error: tError } = await supabase
         .from('appointments')
         .select('*', { count: 'exact', head: true })
@@ -124,8 +124,8 @@ export const DashboardScreen = () => {
         {/* Actions Bento */}
         <Text style={themedStyles.sectionTitle}>Gestion de l'activité</Text>
 
-        <TouchableOpacity 
-          style={themedStyles.actionCard} 
+        <TouchableOpacity
+          style={themedStyles.actionCard}
           onPress={() => navigation.navigate('Stock')}
         >
           <View style={[themedStyles.actionIconContainer, { backgroundColor: theme.colors.tennisPrimary + '20' }]}>
@@ -137,8 +137,8 @@ export const DashboardScreen = () => {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={themedStyles.actionCard} 
+        <TouchableOpacity
+          style={themedStyles.actionCard}
           onPress={() => navigation.navigate('Orders')}
         >
           <View style={[themedStyles.actionIconContainer, { backgroundColor: theme.colors.warning + '20' }]}>
@@ -150,9 +150,9 @@ export const DashboardScreen = () => {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={themedStyles.actionCard} 
-          onPress={() => { /* TODO: Disponibilités */ }}
+        <TouchableOpacity
+          style={themedStyles.actionCard}
+          onPress={() => navigation.navigate('Availabilities')}
         >
           <View style={[themedStyles.actionIconContainer, { backgroundColor: theme.colors.badmintonPrimary + '20' }]}>
             <CalendarDays color={theme.colors.badmintonPrimary} size={28} />
@@ -160,6 +160,17 @@ export const DashboardScreen = () => {
           <View style={themedStyles.actionInfo}>
             <Text style={themedStyles.actionCardTitle}>Mes Disponibilités</Text>
             <Text style={themedStyles.actionCardSubtitle}>Gérer vos horaires et absences</Text>
+          </View>
+
+          style={themedStyles.actionCard}
+          onPress={() => navigation.navigate('PublicProfileEdit')}
+
+          <View style={[themedStyles.actionIconContainer, { backgroundColor: theme.colors.success + '20' }]}>
+            <User color={theme.colors.success} size={28} />
+          </View>
+          <View style={themedStyles.actionInfo}>
+            <Text style={themedStyles.actionCardTitle}>Ma Fiche Publique</Text>
+            <Text style={themedStyles.actionCardSubtitle}>Modifier profil, bio, tarifs</Text>
           </View>
         </TouchableOpacity>
 

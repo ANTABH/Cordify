@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal, RefreshControl, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ArrowLeft, Clock, CheckCircle2, XCircle, PartyPopper, Phone, Mail, User, ChevronDown } from 'lucide-react-native';
+import { ArrowLeft, Clock, CheckCircle2, XCircle, PartyPopper, Phone, Mail, User, ChevronDown, X, Maximize2 } from 'lucide-react-native';
 
 type OrderStatus = 'pending' | 'accepted' | 'completed' | 'cancelled';
 
@@ -17,8 +17,11 @@ interface Order {
   scheduled_time: string | null;
   completed_at: string | null;
   created_at: string;
+  stock_id: string | null;
+  client_string_id: string | null;
   racket: {
     name: string;
+    photo_url: string | null;
   } | null;
   client: {
     first_name: string;
@@ -26,6 +29,11 @@ interface Order {
     phone: string | null;
     email: string | null;
     club: string | null;
+  } | null;
+  client_string: {
+    name: string;
+    type: string;
+    photo_url: string | null;
   } | null;
   stock_item: {
     custom_name: string | null;
@@ -63,7 +71,9 @@ export const OrdersScreen = () => {
   const [filter, setFilter] = useState<OrderStatus | 'all'>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [laborPrice, setLaborPrice] = useState<number>(0);
 
   useEffect(() => {
     fetchOrders();
@@ -84,8 +94,11 @@ export const OrdersScreen = () => {
           scheduled_time,
           completed_at,
           created_at,
-          racket:rackets(name),
+          stock_id,
+          client_string_id,
+          racket:rackets(name, photo_url),
           client:profiles!appointments_client_id_fkey(first_name, last_name, phone, email, club),
+          client_string:client_strings(name, type, photo_url),
           stock_item:stock!appointments_stock_id_fkey(
             custom_name,
             price,
@@ -95,6 +108,14 @@ export const OrdersScreen = () => {
         `)
         .eq('stringer_id', userId)
         .order('created_at', { ascending: false });
+
+      const { data: stringerData } = await supabase
+        .from('stringer_profiles')
+        .select('labor_price')
+        .eq('id', userId)
+        .single();
+
+      if (stringerData) setLaborPrice(stringerData.labor_price || 0);
 
       if (error) throw error;
       setOrders((data as any) || []);
@@ -116,7 +137,7 @@ export const OrdersScreen = () => {
     try {
       setUpdatingStatus(true);
       const updateData: any = { status: newStatus };
-      
+
       if (newStatus === 'completed') {
         updateData.completed_at = new Date().toISOString();
       }
@@ -139,9 +160,18 @@ export const OrdersScreen = () => {
         setSelectedOrder({ ...selectedOrder, ...updateData });
       }
 
+      const order = orders.find(o => o.id === orderId);
+
+      // Decrement strictly when transitioning to completed
+      if (newStatus === 'completed' && order?.stock_id) {
+        const { data: stockData } = await supabase.from('stock').select('quantity').eq('id', order.stock_id).single();
+        if (stockData && stockData.quantity > 0) {
+          await supabase.from('stock').update({ quantity: stockData.quantity - 1 }).eq('id', order.stock_id);
+        }
+      }
+
       if (newStatus === 'completed') {
         // Create notification for the client
-        const order = orders.find(o => o.id === orderId);
         if (order?.client) {
           await supabase.from('notifications').insert({
             user_id: (order as any).client_id || session?.user?.id,
@@ -226,6 +256,7 @@ export const OrdersScreen = () => {
   };
 
   const getStringName = (order: Order) => {
+    if (order.client_string_id) return `(Cordage Client) - ${order.client_string?.name || 'Inconnu'}`;
     if (order.stock_item?.reference_strings?.name) return order.stock_item.reference_strings.name;
     if (order.stock_item?.custom_name) return order.stock_item.custom_name;
     return 'Cordage non spécifié';
@@ -307,6 +338,9 @@ export const OrdersScreen = () => {
               >
                 <View style={s.orderCardTop}>
                   <View style={s.orderNameRow}>
+                    {order.racket?.photo_url && (
+                      <Image source={{ uri: order.racket.photo_url }} style={s.cardThumbnail} />
+                    )}
                     <Text style={s.orderRacketName}>{order.racket?.name || 'Raquette inconnue'}</Text>
                   </View>
                   <View style={[s.statusBadge, { backgroundColor: statusColor + '20' }]}>
@@ -321,7 +355,12 @@ export const OrdersScreen = () => {
                     🧵 {getStringName(order)}
                     {order.applied_tension_kg ? ` · ${order.applied_tension_kg} kg` : ''}
                   </Text>
-                  <Text style={s.orderInfoText}>
+                  {order.status === 'accepted' && !order.client_string_id && (
+                    <Text style={[s.orderInfoText, { color: theme.colors.warning, marginTop: 4, fontFamily: theme.typography.fonts.semiBold }]}>
+                      ⏳ 1 pose réservée du stock
+                    </Text>
+                  )}
+                  <Text style={[s.orderInfoText, { marginTop: 4 }]}>
                     👤 {order.client?.first_name} {order.client?.last_name}
                   </Text>
                 </View>
@@ -375,7 +414,7 @@ export const OrdersScreen = () => {
                 <ScrollView showsVerticalScrollIndicator={false}>
                   {/* Order Header */}
                   <View style={s.modalHeader}>
-                    <Text style={s.modalTitle}>{selectedOrder.racket?.name || 'Raquette'}</Text>
+                    <Text style={s.modalTitle}>{selectedOrder.racket?.name || 'Raquette inconnue'}</Text>
                     <View style={[s.statusBadge, { backgroundColor: statusColor + '20' }]}>
                       <Text style={{ color: statusColor, fontFamily: theme.typography.fonts.semiBold, fontSize: 14 }}>
                         {statusConf.emoji} {statusConf.label}
@@ -383,23 +422,78 @@ export const OrdersScreen = () => {
                     </View>
                   </View>
 
+                  {/* Photo Section */}
+                  {selectedOrder.racket?.photo_url && (
+                    <View style={s.detailSection}>
+                      <Text style={s.detailSectionTitle}>Photo de la raquette</Text>
+                      <TouchableOpacity
+                        style={s.photoContainer}
+                        onPress={() => setFullScreenImage(selectedOrder.racket!.photo_url!)}
+                        activeOpacity={0.9}
+                      >
+                        <Image source={{ uri: selectedOrder.racket.photo_url }} style={s.modalRacketPhoto} />
+                        <View style={s.zoomIconContainer}>
+                          <Maximize2 color="#FFFFFF" size={20} />
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+
+
+
                   {/* Cordage Info */}
                   <View style={s.detailSection}>
-                    <Text style={s.detailSectionTitle}>Cordage</Text>
-                    <View style={s.detailCard}>
-                      <Text style={s.detailText}>🧵 {getStringName(selectedOrder)}</Text>
-                      {selectedOrder.stock_item?.reference_strings?.brand && (
-                        <Text style={s.detailSubText}>{selectedOrder.stock_item.reference_strings.brand}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                      <Text style={[s.detailSectionTitle, { marginBottom: 0 }]}>Cordage</Text>
+                      {selectedOrder.client_string_id && (
+                        <Text style={[s.detailSectionTitle, { color: theme.colors.alert, marginBottom: 0 }]}>POSE SEULE</Text>
                       )}
+                    </View>
+                    <View style={s.detailCard}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={s.detailText}>🧵 {getStringName(selectedOrder)}</Text>
+                          {selectedOrder.stock_item?.reference_strings?.brand && (
+                            <Text style={s.detailSubText}>{selectedOrder.stock_item.reference_strings.brand}</Text>
+                          )}
+                        </View>
+                        {selectedOrder.client_string?.photo_url && (
+                          <TouchableOpacity 
+                            onPress={() => setFullScreenImage(selectedOrder.client_string!.photo_url!)}
+                            activeOpacity={0.8}
+                          >
+                            <Image 
+                              source={{ uri: selectedOrder.client_string.photo_url }} 
+                              style={{ width: 60, height: 60, borderRadius: 12, backgroundColor: theme.colors.border }} 
+                            />
+                            <View style={[s.zoomIconContainer, { width: 22, height: 22, bottom: 2, right: 2 }]}>
+                              <Maximize2 color="#FFFFFF" size={12} />
+                            </View>
+                          </TouchableOpacity>
+                        )}
+                      </View>
                       {selectedOrder.applied_tension_kg && (
                         <Text style={s.detailText}>
                           ⚡ Tension : {selectedOrder.applied_tension_kg} kg / {(selectedOrder.applied_tension_kg * 2.20462).toFixed(1)} lbs
                         </Text>
                       )}
-                      {selectedOrder.stock_item && (
-                        <Text style={s.detailText}>
-                          💰 {selectedOrder.stock_item.price} € {selectedOrder.stock_item.includes_labor ? '(pose incluse)' : '(sans pose)'}
+                      {selectedOrder.client_string_id ? (
+                        <Text style={[s.detailText, { color: theme.colors.badmintonPrimary, fontFamily: theme.typography.fonts.bold }]}>
+                          💰 {laborPrice} € (Tarif pose seule)
                         </Text>
+                      ) : (
+                        selectedOrder.stock_item && (
+                          <Text style={s.detailText}>
+                            💰 {selectedOrder.stock_item.price} € {selectedOrder.stock_item.includes_labor ? '(pose incluse)' : '(sans pose)'}
+                          </Text>
+                        )
+                      )}
+                      {selectedOrder.status === 'accepted' && !selectedOrder.client_string_id && (
+                        <View style={s.stockWarningBox}>
+                          <Text style={s.stockWarningText}>
+                            ⏳ 1 pose de ce cordage est virtuellement retirée de votre stock. Elle sera décomptée définitivement une fois la commande "Terminée".
+                          </Text>
+                        </View>
                       )}
                     </View>
                   </View>
@@ -515,6 +609,15 @@ export const OrdersScreen = () => {
             })()}
           </View>
         </View>
+        {/* Full Screen Image INSIDE the same Modal */}
+        {fullScreenImage && (
+          <View style={[StyleSheet.absoluteFill, s.fullScreenOverlay]}>
+            <TouchableOpacity style={s.fullScreenCloseBtn} onPress={() => setFullScreenImage(null)}>
+              <X color="#FFFFFF" size={32} />
+            </TouchableOpacity>
+            <Image source={{ uri: fullScreenImage }} style={s.fullScreenImage} />
+          </View>
+        )}
       </Modal>
     </SafeAreaView>
   );
@@ -569,7 +672,8 @@ const styles = (theme: any) => StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 20,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: theme.colors.surface,
     marginRight: 8,
     gap: 6,
@@ -800,4 +904,65 @@ const styles = (theme: any) => StyleSheet.create({
     fontSize: theme.typography.sizes.body,
     color: theme.colors.textSecondary,
   },
+  cardThumbnail: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    marginRight: 10,
+    backgroundColor: theme.colors.border,
+  },
+  modalRacketPhoto: {
+    width: '100%',
+    height: 200,
+    borderRadius: 16,
+    backgroundColor: theme.colors.border,
+  },
+  fullScreenOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullScreenCloseBtn: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
+    zIndex: 10,
+    padding: 10,
+  },
+  fullScreenImage: {
+    width: '100%',
+    height: '80%',
+    resizeMode: 'contain',
+  },
+  photoContainer: {
+    position: 'relative',
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  zoomIconContainer: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  stockWarningBox: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: theme.colors.warning + '15',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.warning + '30',
+  },
+  stockWarningText: {
+    color: theme.colors.warning,
+    fontFamily: theme.typography.fonts.medium,
+    fontSize: 13,
+    lineHeight: 18,
+  }
 });

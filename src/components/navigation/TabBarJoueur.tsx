@@ -2,8 +2,8 @@ import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Dimensions, Platform, Text } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Home, User, Search } from 'lucide-react-native';
-import { RacketIcon } from '../RacketIcon';
+import { Home, User, Search, ClipboardList } from 'lucide-react-native';
+import { EquipmentIcon } from '../EquipmentIcon';
 import { useTheme } from '../../context/ThemeContext';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
@@ -18,7 +18,7 @@ export const TabBarJoueur = ({ state, descriptors, navigation }: BottomTabBarPro
   // On s'assure que l'ordre correspond à ce que l'utilisateur a demandé :
   // Gauche : Mes raquettes (Rackets)
   // Milieu : Accueil (Home)
-  // Droite : Paramètres (Settings)
+  // Droite : Commandes (Orders)
 
   return (
     <View style={[themedStyles.container, { bottom: insets.bottom + 8 }]}>
@@ -53,8 +53,8 @@ export const TabBarJoueur = ({ state, descriptors, navigation }: BottomTabBarPro
 
             let Icon;
             if (route.name === 'Home') Icon = Home;
-            else if (route.name === 'Settings') Icon = User;
-            else if (route.name === 'Rackets') Icon = RacketIcon;
+            else if (route.name === 'Orders') Icon = ClipboardList;
+            else if (route.name === 'Rackets') Icon = EquipmentIcon;
             else Icon = Search; // Fallback
 
             const label = options.title !== undefined ? options.title : route.name;

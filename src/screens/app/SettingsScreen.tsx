@@ -76,13 +76,6 @@ export const SettingsScreen = () => {
               label="Informations personnelles"
               onPress={() => { }}
             />
-            {userRole === 'client' && (
-              <SettingItem
-                icon={<Dumbbell size={20} color={theme.colors.textPrimary} />}
-                label="Mes raquettes"
-                onPress={() => navigation.navigate('Rackets')}
-              />
-            )}
             <SettingItem
               icon={<Bell size={20} color={theme.colors.textPrimary} />}
               label="Notifications"

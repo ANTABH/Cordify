@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { HomeScreen } from '../screens/app/HomeScreen';
 import { RacketsScreen } from '../screens/app/RacketsScreen';
-import { SettingsScreen } from '../screens/app/SettingsScreen';
+import { OrdersScreen } from '../screens/app/OrdersScreen';
 import { TabBarJoueur } from '../components/navigation/TabBarJoueur';
 
 const Tab = createBottomTabNavigator();
@@ -19,7 +19,7 @@ export const PlayerTabNavigator = () => {
       <Tab.Screen 
         name="Rackets" 
         component={RacketsScreen} 
-        options={{ title: 'Mes raquettes' }}
+        options={{ title: 'Matériel' }}
       />
       <Tab.Screen 
         name="Home" 
@@ -27,9 +27,9 @@ export const PlayerTabNavigator = () => {
         options={{ title: 'Accueil' }}
       />
       <Tab.Screen 
-        name="Settings" 
-        component={SettingsScreen} 
-        options={{ title: 'Profil' }}
+        name="Orders" 
+        component={OrdersScreen} 
+        options={{ title: 'Commandes' }}
       />
     </Tab.Navigator>
   );
